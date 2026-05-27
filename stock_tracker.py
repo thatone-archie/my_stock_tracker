@@ -105,13 +105,13 @@ html, body, [class*="css"] {
 }
 .card-ticker {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   font-weight: 600;
   color: var(--accent);
   letter-spacing: 0.04em;
 }
 .card-name {
-  font-size: 0.78rem;
+  font-size: 1.08rem;
   color: var(--text2);
   margin-top: 3px;
   font-weight: 400;
@@ -148,7 +148,7 @@ html, body, [class*="css"] {
 }
 .badge-label {
   font-family: 'Inter', sans-serif;
-  font-size: 0.65rem;
+  font-size: 0.95rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -172,7 +172,7 @@ html, body, [class*="css"] {
   flex-wrap: wrap;
 }
 .ah-label {
-  font-size: 0.68rem;
+  font-size: 0.90rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.09em;
