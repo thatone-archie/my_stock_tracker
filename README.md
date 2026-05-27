@@ -25,3 +25,16 @@ Please write the complete code and setup steps based on these strict requirement
 6. ERROR HANDLING: If the yfinance API fails to load data for a specific ticker, catch the error and display a friendly, clean message to the user instead of breaking the page.
 Provide the complete code in a single file if possible, and include short, clear steps on how to install the required libraries and run the app locally.
 Ask me any questions if you have any doubts
+
+
+Edited Prompt to Add Earning Calendar Page
+
+the logic displays no result in the  Earnings calendar for any of the months.
+
+Let user select a month. Then have 4 tabs i.e. Week1, week2, week3, week4, if needed week5 for that month.
+Now when user selects a week, then use that data range i.e. week start date, week end date for that month selelcted, and use the yf.get_earnings_calendar(start=..., end=...) to fetch all the stocks that report earning that week.
+Display all the stocks, that have their earnings that lies in the respective weeks
+Only when user clicks on or changes the week, make a fresh call to the api with the new start and end date.
+Handle errors and display user friendly messages
+Keep all other code logic untouched
+Please provide updated .py file
