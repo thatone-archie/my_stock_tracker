@@ -51,13 +51,16 @@ html, body, [class*="css"] {
 }
 
 /* ════════════════════════════════════════
-   SIDEBAR NAV
+   SIDEBAR NAV — light blue theme
    ════════════════════════════════════════ */
 section[data-testid="stSidebar"] {
-  background: #0d0f15 !important;
-  border-right: 1px solid var(--border) !important;
+  background: #dbeafe !important;
+  border-right: 1px solid #93c5fd !important;
   min-width: 220px !important;
   max-width: 220px !important;
+}
+section[data-testid="stSidebar"] * {
+  color: #1e3a5f !important;
 }
 .nav-logo-row {
   display: flex;
@@ -75,49 +78,67 @@ section[data-testid="stSidebar"] {
 .nav-brand {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 700;
+  color: #1e3a5f !important;
   letter-spacing: 0.02em;
 }
 .nav-divider {
   height: 1px;
-  background: var(--border);
+  background: #93c5fd;
   margin: 6px 0 14px 0;
 }
 .nav-section-label {
   font-size: 0.6rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: #2563eb !important;
   margin-bottom: 8px;
 }
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.84rem;
-  font-weight: 500;
-  color: var(--text2);
-  margin-bottom: 3px;
-  border: 1px solid transparent;
-  transition: all 0.15s;
-  text-decoration: none !important;
+
+/* Sidebar radio as nav */
+div[data-testid="stSidebar"] .stRadio > label { display: none !important; }
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] {
+  gap: 4px !important;
+  flex-direction: column !important;
 }
-.nav-item:hover {
-  background: var(--surface2);
-  color: var(--text);
-  border-color: var(--border2);
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 9px 12px !important;
+  border-radius: 8px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  color: #1e40af !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  width: 100% !important;
 }
-.nav-item.active {
-  background: rgba(59,158,255,0.12);
-  color: var(--accent);
-  border-color: rgba(59,158,255,0.25);
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
+  background: #bfdbfe !important;
+  color: #1e3a5f !important;
+  border-color: #93c5fd !important;
 }
-.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:has(input:checked) {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+}
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:has(input:checked) * {
+  color: #ffffff !important;
+}
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-child {
+  display: none !important;
+}
+.nav-footer-text {
+  font-size: 0.65rem;
+  color: #3b82f6 !important;
+  text-align: center;
+  margin-top: 10px;
+}
 
 /* ════════════════════════════════════════
    SHARED HEADER
@@ -306,6 +327,7 @@ section[data-testid="stSidebar"] {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  margin-bottom: 28px;
 }
 .ec-table th {
   font-family: 'Inter', sans-serif;
@@ -313,7 +335,7 @@ section[data-testid="stSidebar"] {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text2);
   padding: 10px 16px;
   border-bottom: 1px solid var(--border2);
   text-align: left;
@@ -381,27 +403,43 @@ section[data-testid="stSidebar"] {
 /* Empty state */
 .ec-empty {
   text-align: center;
-  padding: 60px 20px;
+  padding: 30px 20px;
   color: var(--muted);
+  background: var(--surface);
+  border: 1px dashed var(--border2);
+  border-radius: 12px;
+  margin-bottom: 10px;
 }
-.ec-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
-.ec-empty-title { font-size: 1rem; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
-.ec-empty-sub   { font-size: 0.8rem; color: var(--muted); }
+.ec-empty-icon { font-size: 2rem; margin-bottom: 8px; }
+.ec-empty-title { font-size: 0.9rem; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+.ec-empty-sub   { font-size: 0.78rem; color: var(--muted); }
 
 /* Section header above table */
+.ec-week-block {
+  margin-top: 28px;
+}
 .ec-section-head {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
-  margin-top: 8px;
+  padding: 10px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
 }
 .ec-section-title {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text2);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
   letter-spacing: 0.04em;
+}
+.ec-section-range {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text2);
+  margin-left: 2px;
 }
 .ec-section-count {
   font-size: 0.68rem;
@@ -411,13 +449,12 @@ section[data-testid="stSidebar"] {
   border: 1px solid rgba(59,158,255,0.2);
   border-radius: 20px;
   padding: 1px 8px;
+  margin-left: auto;
 }
-.ec-na-section-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.78rem;
+.ec-section-count.zero {
   color: var(--muted);
-  margin: 20px 0 10px;
-  letter-spacing: 0.04em;
+  background: transparent;
+  border-color: var(--border);
 }
 
 /* ── Shared chrome ── */
@@ -435,42 +472,7 @@ section[data-testid="stSidebar"] {
 }
 .stButton > button:hover { opacity: 0.88 !important; }
 
-/* Sidebar radio as nav */
-div[data-testid="stSidebar"] .stRadio > label { display: none !important; }
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] {
-  gap: 4px !important;
-  flex-direction: column !important;
-}
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  padding: 9px 12px !important;
-  border-radius: 8px !important;
-  font-size: 0.84rem !important;
-  font-weight: 500 !important;
-  color: var(--text2) !important;
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  cursor: pointer !important;
-  transition: all 0.15s !important;
-  width: 100% !important;
-}
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
-  background: var(--surface2) !important;
-  color: var(--text) !important;
-  border-color: var(--border2) !important;
-}
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:has(input:checked) {
-  background: rgba(59,158,255,0.12) !important;
-  color: var(--accent) !important;
-  border-color: rgba(59,158,255,0.25) !important;
-}
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-child {
-  display: none !important;
-}
-
-/* Selectbox (week filter) */
+/* Selectbox */
 div[data-testid="stSelectbox"] > div > div {
   background: var(--surface2) !important;
   border: 1px solid var(--border2) !important;
@@ -501,8 +503,8 @@ TICKERS = {
     "IAU":   "iShares Gold Trust",
     "RKLB":  "Rocket Lab Corp",
 }
-ETF_TICKERS   = {"SOXX", "SPY", "IAU"}
-NO_EARNINGS   = ETF_TICKERS  # expand if needed
+ETF_TICKERS = {"SOXX", "SPY", "IAU"}
+NO_EARNINGS  = ETF_TICKERS
 
 CHART_UP_LINE   = "#1fd97a"
 CHART_UP_FILL   = "rgba(31,217,122,0.07)"
@@ -591,95 +593,92 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
 
 
 @st.cache_data(ttl=0, show_spinner=False)
-def fetch_earnings_calendar_range(start_str: str, end_str: str, _cache_key: int) -> pd.DataFrame:
+def fetch_ticker_earnings_for_range(symbol: str, start_str: str, end_str: str, _cache_key: int):
     """
-    Fetch earnings calendar for a date range using yf.get_earnings_calendar().
-    Returns a DataFrame (may be empty on error or no data).
+    For a single ticker, fetch its earnings dates that fall within [start_str, end_str].
+    Uses yf.get_earnings_calendar(start, end) — the market-wide calendar — then
+    filters to this symbol. Falls back to ticker.calendar if the bulk call misses it.
+
+    Returns: list of date objects (may be empty), or raises on hard error.
     """
+    dates = []
+
+    # ── Primary: yf.get_earnings_calendar (bulk, date-range aware) ──────────
     try:
         df = yf.get_earnings_calendar(start=start_str, end=end_str)
-        if df is None:
-            return pd.DataFrame()
-        return df
+        if df is not None and not df.empty:
+            # Detect ticker column
+            ticker_col = None
+            for c in ("ticker", "Ticker", "symbol", "Symbol"):
+                if c in df.columns:
+                    ticker_col = c
+                    break
+            # Detect date column
+            date_col = None
+            for c in ("startdatetime", "startDateTime", "date", "Date",
+                      "Earnings Date", "earningsDate"):
+                if c in df.columns:
+                    date_col = c
+                    break
+
+            if ticker_col and date_col:
+                mask = df[ticker_col].astype(str).str.upper().str.strip() == symbol.upper()
+                for _, row in df[mask].iterrows():
+                    try:
+                        d = pd.Timestamp(row[date_col]).date()
+                        dates.append(d)
+                    except Exception:
+                        pass
     except Exception:
-        return pd.DataFrame()
+        pass
+
+    # ── Fallback: ticker.calendar (always check, fills gaps) ────────────────
+    if not dates:
+        try:
+            t = yf.Ticker(symbol)
+            cal = t.calendar
+            if cal is not None:
+                if isinstance(cal, dict):
+                    ed = cal.get("Earnings Date")
+                    if ed:
+                        vals = ed if isinstance(ed, (list, tuple)) else [ed]
+                        for v in vals:
+                            try:
+                                d = pd.Timestamp(v).date()
+                                dates.append(d)
+                            except Exception:
+                                pass
+                elif isinstance(cal, pd.DataFrame) and not cal.empty:
+                    if "Earnings Date" in cal.index:
+                        v = cal.loc["Earnings Date"].iloc[0]
+                        try:
+                            d = pd.Timestamp(v).date()
+                            dates.append(d)
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+
+    # Filter to the requested window
+    try:
+        start_d = date.fromisoformat(start_str)
+        end_d   = date.fromisoformat(end_str)
+        dates   = [d for d in dates if start_d <= d <= end_d]
+    except Exception:
+        pass
+
+    return sorted(set(dates))
 
 
 @st.cache_data(ttl=0, show_spinner=False)
-def fetch_earnings_data(symbol: str, _cache_key: int):
-    """
-    Returns dict with:
-      price        – current price (float or None)
-      dates        – list of date objects (may be empty)
-      is_na        – True when ticker has no earnings (ETF / gold trust)
-      error        – error string if fetch failed, else None
-    """
-    if symbol in NO_EARNINGS:
-        return {"price": None, "dates": [], "is_na": True, "error": None}
-
+def fetch_current_price(symbol: str, _cache_key: int):
+    """Fast price-only fetch for the earnings calendar page."""
     try:
-        ticker = yf.Ticker(symbol)
-
-        # Current price (fast path via info)
-        price = None
-        try:
-            info  = ticker.info or {}
-            price = info.get("currentPrice") or info.get("regularMarketPrice")
-            if price:
-                price = float(price)
-        except Exception:
-            pass
-
-        # Earnings dates via get_earnings_dates (returns a DataFrame indexed by date)
-        dates = []
-        try:
-            raw = ticker.get_earnings_dates(limit=8)   # up to 8 upcoming/past
-            if raw is not None and not raw.empty:
-                # Index is a DatetimeTZDtype; convert to plain dates
-                for ts in raw.index:
-                    try:
-                        d = ts.date() if hasattr(ts, "date") else pd.Timestamp(ts).date()
-                        if d >= date.today():          # keep only future dates
-                            dates.append(d)
-                    except Exception:
-                        pass
-                dates = sorted(set(dates))
-        except Exception:
-            pass
-
-        # Fallback: ticker.calendar
-        if not dates:
-            try:
-                cal = ticker.calendar
-                if cal is not None:
-                    if isinstance(cal, dict):
-                        ed = cal.get("Earnings Date")
-                        if ed:
-                            vals = ed if isinstance(ed, (list, tuple)) else [ed]
-                            for v in vals:
-                                try:
-                                    d = pd.Timestamp(v).date()
-                                    if d >= date.today():
-                                        dates.append(d)
-                                except Exception:
-                                    pass
-                    elif isinstance(cal, pd.DataFrame) and not cal.empty:
-                        if "Earnings Date" in cal.index:
-                            v = cal.loc["Earnings Date"].iloc[0]
-                            try:
-                                d = pd.Timestamp(v).date()
-                                if d >= date.today():
-                                    dates.append(d)
-                            except Exception:
-                                pass
-                dates = sorted(set(dates))
-            except Exception:
-                pass
-
-        return {"price": price, "dates": dates, "is_na": False, "error": None}
-
-    except Exception as e:
-        return {"price": None, "dates": [], "is_na": False, "error": str(e)}
+        info = yf.Ticker(symbol).info or {}
+        p = info.get("currentPrice") or info.get("regularMarketPrice")
+        return float(p) if p else None
+    except Exception:
+        return None
 
 
 # ── Shared helpers ─────────────────────────────────────────────────────────────
@@ -700,6 +699,28 @@ def week_bounds(offset_weeks: int = 0):
     monday = today - timedelta(days=today.weekday()) + timedelta(weeks=offset_weeks)
     sunday = monday + timedelta(days=6)
     return monday, sunday
+
+def get_week_buckets(month_start: date, month_end: date):
+    """
+    Return list of (label, mon, sun) for every Mon-Sun week overlapping the month.
+    Labels: 'Current Week', 'Next Week', or 'Week of MMM DD'.
+    """
+    current_mon, _ = week_bounds(0)
+    next_mon,    _ = week_bounds(1)
+    # Start from the Monday on or before month_start
+    cursor = month_start - timedelta(days=month_start.weekday())
+    buckets = []
+    while cursor <= month_end:
+        wk_sun = cursor + timedelta(days=6)
+        if cursor == current_mon:
+            label = "Current Week"
+        elif cursor == next_mon:
+            label = "Next Week"
+        else:
+            label = f"Week of {cursor.strftime('%b %d')}"
+        buckets.append((label, cursor, wk_sun))
+        cursor += timedelta(weeks=1)
+    return buckets
 
 def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure:
     color = CHART_UP_LINE if is_up else CHART_DOWN_LINE
@@ -759,9 +780,7 @@ with st.sidebar:
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
     st.markdown("""
     <div class="nav-divider"></div>
-    <div style="font-size:0.65rem; color:#3a4060; text-align:center; margin-top:10px;">
-      Data via yfinance · US markets
-    </div>
+    <div class="nav-footer-text">Data via yfinance · US markets</div>
     """, unsafe_allow_html=True)
 
 
@@ -786,7 +805,8 @@ if page == "📊  Stock Dashboard":
         st.write("")
         if st.button("⟳  Refresh Data", key="dash_refresh"):
             fetch_ticker_data.clear()
-            fetch_earnings_data.clear()
+            fetch_ticker_earnings_for_range.clear()
+            fetch_current_price.clear()
             st.session_state.last_refresh = datetime.now()
             st.session_state.cache_key += 1
             st.rerun()
@@ -891,7 +911,7 @@ if page == "📊  Stock Dashboard":
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "📅  Earnings Calendar":
 
-    # ── Header
+    # ── Header ────────────────────────────────────────────────────────────────
     header_col, btn_col = st.columns([6, 1])
     with header_col:
         st.markdown("""
@@ -908,8 +928,8 @@ elif page == "📅  Earnings Calendar":
         st.write("")
         if st.button("⟳  Refresh Data", key="ec_refresh"):
             fetch_ticker_data.clear()
-            fetch_earnings_data.clear()
-            fetch_earnings_calendar_range.clear()
+            fetch_ticker_earnings_for_range.clear()
+            fetch_current_price.clear()
             st.session_state.last_refresh = datetime.now()
             st.session_state.cache_key += 1
             st.rerun()
@@ -919,13 +939,11 @@ elif page == "📅  Earnings Calendar":
     # ── Month selector ─────────────────────────────────────────────────────────
     today = date.today()
 
-    # Build list of selectable months: current month + next 2
     month_options = []
     for delta in range(3):
         y = today.year + (today.month - 1 + delta) // 12
         m = (today.month - 1 + delta) % 12 + 1
         month_options.append(date(y, m, 1))
-
     month_labels = [d.strftime("%B %Y") for d in month_options]
 
     filter_col, _, _ = st.columns([2, 3, 3])
@@ -938,187 +956,98 @@ elif page == "📅  Earnings Calendar":
         )
 
     selected_month_start = month_options[month_labels.index(selected_month_label)]
-
-    # Compute last day of selected month
     if selected_month_start.month == 12:
         month_end = date(selected_month_start.year + 1, 1, 1) - timedelta(days=1)
     else:
         month_end = date(selected_month_start.year, selected_month_start.month + 1, 1) - timedelta(days=1)
 
-    # ── Compute week buckets for the selected month ────────────────────────────
-    def get_week_buckets(month_start: date, month_end: date):
-        """
-        Returns a list of (label, mon, sun) tuples for each Mon–Sun week
-        that overlaps the given month. Labels: 'Current Week', 'Next Week',
-        or 'Week of MMM DD'.
-        """
-        # Find the Monday on or before month_start
-        cursor = month_start - timedelta(days=month_start.weekday())
-        buckets = []
-        current_mon, _ = week_bounds(0)
-        next_mon, _    = week_bounds(1)
-        while cursor <= month_end:
-            wk_sun = cursor + timedelta(days=6)
-            if cursor == current_mon:
-                label = "Current Week"
-            elif cursor == next_mon:
-                label = "Next Week"
-            else:
-                label = f"Week of {cursor.strftime('%b %d')}"
-            buckets.append((label, cursor, wk_sun))
-            cursor += timedelta(weeks=1)
-        return buckets
-
     week_buckets = get_week_buckets(selected_month_start, month_end)
 
-    # ── Fetch earnings calendar for the full month in one call ─────────────────
-    with st.spinner("Fetching earnings calendar…"):
-        cal_df = fetch_earnings_calendar_range(
-            selected_month_start.strftime("%Y-%m-%d"),
-            month_end.strftime("%Y-%m-%d"),
-            st.session_state.cache_key,
-        )
+    # ── For each tracked (non-ETF) ticker, fetch earnings for the full month ──
+    # We query per ticker so we get accurate results regardless of how
+    # yf.get_earnings_calendar handles our specific symbols.
+    TRACKED_SYMS = [s for s in TICKERS if s not in NO_EARNINGS]
 
-    # Normalise the calendar DataFrame into a simple lookup:
-    # { ticker_symbol -> [date, ...] }
-    TRACKED = set(TICKERS.keys()) - NO_EARNINGS
+    month_start_str = selected_month_start.strftime("%Y-%m-%d")
+    month_end_str   = month_end.strftime("%Y-%m-%d")
 
-    def parse_calendar_df(df: pd.DataFrame) -> dict:
-        """
-        Parse yf.get_earnings_calendar() output into {ticker: [date, ...]}.
-        The DataFrame columns vary by yfinance version; we handle common shapes.
-        """
-        result: dict = {}
-        if df is None or df.empty:
-            return result
-        try:
-            # Detect ticker column
-            ticker_col = None
-            for col in ("ticker", "Ticker", "symbol", "Symbol"):
-                if col in df.columns:
-                    ticker_col = col
-                    break
-            # Detect date column
-            date_col = None
-            for col in ("startdatetime", "startDateTime", "date", "Date",
-                        "Earnings Date", "earningsDate"):
-                if col in df.columns:
-                    date_col = col
-                    break
+    earnings_by_ticker = {}   # sym -> list[date]  (dates within the full month)
+    price_by_ticker    = {}   # sym -> float | None
 
-            if ticker_col is None or date_col is None:
-                # Try index as ticker, first date column fallback
-                if df.index.name and df.index.name.lower() in ("ticker", "symbol"):
-                    df = df.reset_index()
-                    ticker_col = df.columns[0]
-                if date_col is None and not df.empty:
-                    date_col = df.columns[1] if len(df.columns) > 1 else None
-
-            if ticker_col is None or date_col is None:
-                return result
-
-            for _, row in df.iterrows():
-                sym = str(row[ticker_col]).strip().upper()
-                if sym not in TRACKED:
-                    continue
+    progress_placeholder = st.empty()
+    with progress_placeholder:
+        with st.spinner(f"Fetching earnings data for {selected_month_label}…"):
+            for sym in TRACKED_SYMS:
                 try:
-                    d = pd.Timestamp(row[date_col]).date()
-                    result.setdefault(sym, [])
-                    result[sym].append(d)
+                    dates = fetch_ticker_earnings_for_range(
+                        sym, month_start_str, month_end_str,
+                        st.session_state.cache_key,
+                    )
+                    earnings_by_ticker[sym] = dates
                 except Exception:
-                    pass
-        except Exception:
-            pass
-        # Sort each ticker's dates
-        for sym in result:
-            result[sym] = sorted(set(result[sym]))
-        return result
+                    earnings_by_ticker[sym] = []
 
-    cal_lookup = parse_calendar_df(cal_df)
+                try:
+                    price_by_ticker[sym] = fetch_current_price(
+                        sym, st.session_state.cache_key
+                    )
+                except Exception:
+                    price_by_ticker[sym] = None
 
-    # ── Fetch current prices for tracked tickers (re-use existing cache) ───────
-    price_lookup: dict = {}
-    for sym in TRACKED:
-        try:
-            data = fetch_earnings_data(sym, st.session_state.cache_key)
-            if data and data.get("price"):
-                price_lookup[sym] = data["price"]
-        except Exception:
-            pass
-
-    # Also check tickers found in calendar but not in price_lookup
-    for sym in cal_lookup:
-        if sym not in price_lookup:
-            try:
-                info = yf.Ticker(sym).info or {}
-                p = info.get("currentPrice") or info.get("regularMarketPrice")
-                if p:
-                    price_lookup[sym] = float(p)
-            except Exception:
-                pass
+    progress_placeholder.empty()
 
     # ── Render week-by-week ────────────────────────────────────────────────────
-    any_results = False
-
     for wk_label, wk_mon, wk_sun in week_buckets:
-        # Gather all tracked tickers with an earnings date in this week
+        wk_range_str = f"{wk_mon.strftime('%b %d')} – {wk_sun.strftime('%b %d, %Y')}"
+
+        # Find all tracked tickers whose earnings date falls in this week window
         week_rows = []
-        for sym, name in TICKERS.items():
-            if sym in NO_EARNINGS:
-                continue
-            sym_dates = cal_lookup.get(sym, [])
-            matched = [d for d in sym_dates if wk_mon <= d <= wk_sun]
-            if matched:
+        for sym in TRACKED_SYMS:
+            all_dates = earnings_by_ticker.get(sym, [])
+            # Check if any of this ticker's earnings dates fall within Mon–Sun
+            matched_dates = [d for d in all_dates if wk_mon <= d <= wk_sun]
+            if matched_dates:
                 week_rows.append({
                     "sym":   sym,
-                    "name":  name,
-                    "price": price_lookup.get(sym),
-                    "date":  matched[0],
+                    "name":  TICKERS[sym],
+                    "price": price_by_ticker.get(sym),
+                    "date":  matched_dates[0],   # use the earliest matched date
                 })
 
         week_rows.sort(key=lambda r: r["date"])
-        wk_range_label = f"{wk_mon.strftime('%b %d')} – {wk_sun.strftime('%b %d, %Y')}"
+        count    = len(week_rows)
+        cnt_cls  = "ec-section-count" if count > 0 else "ec-section-count zero"
+        cnt_text = f"{count} ticker{'s' if count != 1 else ''}"
+
+        # Section header (always shown for every week in the month)
+        st.markdown(f"""
+        <div class="ec-week-block">
+          <div class="ec-section-head">
+            <span class="ec-section-title">{wk_label.upper()}</span>
+            <span class="ec-section-range">· {wk_range_str}</span>
+            <span class="{cnt_cls}">{cnt_text}</span>
+          </div>
+        </div>""", unsafe_allow_html=True)
 
         if not week_rows:
-            # Show a compact empty-state row for weeks with no data
-            st.markdown(f"""
-            <div class="ec-section-head" style="margin-top:18px">
-              <span class="ec-section-title">{wk_label.upper()}</span>
-              <span style="font-size:0.7rem;color:var(--muted);font-family:'IBM Plex Mono',monospace">
-                {wk_range_label}
-              </span>
-            </div>
-            <div class="ec-empty" style="padding:20px 0 24px 0">
-              <div class="ec-empty-icon" style="font-size:1.6rem;margin-bottom:6px">🗓️</div>
-              <div class="ec-empty-title" style="font-size:0.85rem">
-                No earnings scheduled for this week
-              </div>
-              <div class="ec-empty-sub">
-                None of the tracked tickers report during {wk_range_label}.
-              </div>
+            st.markdown("""
+            <div class="ec-empty">
+              <div class="ec-empty-icon">🗓️</div>
+              <div class="ec-empty-title">No earnings scheduled for this week</div>
+              <div class="ec-empty-sub">None of the tracked tickers report during this window.</div>
             </div>""", unsafe_allow_html=True)
             continue
 
-        any_results = True
-
-        st.markdown(f"""
-        <div class="ec-section-head" style="margin-top:18px">
-          <span class="ec-section-title">{wk_label.upper()}</span>
-          <span class="ec-section-count">{len(week_rows)} ticker{'s' if len(week_rows)!=1 else ''}</span>
-          <span style="font-size:0.7rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-left:4px">
-            · {wk_range_label}
-          </span>
-        </div>""", unsafe_allow_html=True)
-
+        # Build table rows
         rows_html = ""
         for r in week_rows:
             d        = r["date"]
             is_today = (d == today)
             is_tmrw  = (d == today + timedelta(days=1))
             pill_cls = "today" if is_today else "upcoming"
-            day_str  = ("TODAY" if is_today
-                        else ("TOMORROW" if is_tmrw
-                              else d.strftime("%a, %b %d")))
+            day_str  = ("TODAY"    if is_today
+                        else "TOMORROW" if is_tmrw
+                        else d.strftime("%a, %b %d"))
             rows_html += f"""
             <tr>
               <td>
@@ -1143,21 +1072,9 @@ elif page == "📅  Earnings Calendar":
           <tbody>{rows_html}</tbody>
         </table>""", unsafe_allow_html=True)
 
-    # ── If the entire calendar returned no data at all ─────────────────────────
-    if cal_df.empty and not any_results:
-        st.markdown(f"""
-        <div class="ec-empty">
-          <div class="ec-empty-icon">📭</div>
-          <div class="ec-empty-title">No earnings data available for {selected_month_label}</div>
-          <div class="ec-empty-sub">
-            The earnings calendar returned no results for this period.<br>
-            Try a different month or refresh to retry.
-          </div>
-        </div>""", unsafe_allow_html=True)
-
     st.write("")
 
-    # ── ETFs / no-earnings (always shown, compact) ─────────────────────────────
+    # ── ETFs / no-earnings — always shown, collapsed ───────────────────────────
     na_rows = [{"sym": s, "name": n} for s, n in TICKERS.items() if s in NO_EARNINGS]
     if na_rows:
         with st.expander(
