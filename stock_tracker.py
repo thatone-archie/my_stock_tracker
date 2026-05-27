@@ -66,11 +66,11 @@ html, body, [class*="css"] {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--muted);
   letter-spacing: -0.02em;
 }
 .dash-pill {
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   color: var(--accent);
   background: rgba(59,158,255,0.12);
   border: 1px solid rgba(59,158,255,0.25);
