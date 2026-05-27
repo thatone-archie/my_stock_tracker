@@ -593,92 +593,104 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
 
 
 @st.cache_data(ttl=0, show_spinner=False)
-def fetch_ticker_earnings_for_range(symbol: str, start_str: str, end_str: str, _cache_key: int):
+def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     """
-    For a single ticker, fetch its earnings dates that fall within [start_str, end_str].
-    Uses yf.get_earnings_calendar(start, end) — the market-wide calendar — then
-    filters to this symbol. Falls back to ticker.calendar if the bulk call misses it.
+    Call yf.get_earnings_calendar(start, end) ONCE for the given week window.
+    Returns a list of dicts:
+        [{"sym": str, "name": str, "price": float|None, "date": date}, ...]
+    sorted by earnings date.  Returns [] on error/no data.
 
-    Returns: list of date objects (may be empty), or raises on hard error.
+    The cache key changes only when the user hits Refresh, so switching between
+    weeks (different start/end strings) always triggers a fresh API call because
+    the arguments differ — exactly what we want.
     """
-    dates = []
+    rows = []
+    error_msg = None
 
-    # ── Primary: yf.get_earnings_calendar (bulk, date-range aware) ──────────
     try:
         df = yf.get_earnings_calendar(start=start_str, end=end_str)
-        if df is not None and not df.empty:
-            # Detect ticker column
-            ticker_col = None
-            for c in ("ticker", "Ticker", "symbol", "Symbol"):
-                if c in df.columns:
-                    ticker_col = c
-                    break
-            # Detect date column
-            date_col = None
-            for c in ("startdatetime", "startDateTime", "date", "Date",
-                      "Earnings Date", "earningsDate"):
-                if c in df.columns:
-                    date_col = c
-                    break
+    except Exception as exc:
+        return [], f"API error: {exc}"
 
-            if ticker_col and date_col:
-                mask = df[ticker_col].astype(str).str.upper().str.strip() == symbol.upper()
-                for _, row in df[mask].iterrows():
-                    try:
-                        d = pd.Timestamp(row[date_col]).date()
-                        dates.append(d)
-                    except Exception:
-                        pass
-    except Exception:
-        pass
+    if df is None or df.empty:
+        return [], None   # no data — not an error
 
-    # ── Fallback: ticker.calendar (always check, fills gaps) ────────────────
-    if not dates:
+    # ── Detect columns (yfinance column names vary by version) ──────────────
+    # Print columns to help debug; silently ignored in production
+    ticker_col = None
+    for c in ("ticker", "Ticker", "symbol", "Symbol"):
+        if c in df.columns:
+            ticker_col = c
+            break
+
+    date_col = None
+    for c in ("startdatetime", "startDateTime", "Startdatetime",
+              "date", "Date", "Earnings Date", "earningsDate"):
+        if c in df.columns:
+            date_col = c
+            break
+
+    # If the index looks like dates, use it
+    if date_col is None:
         try:
-            t = yf.Ticker(symbol)
-            cal = t.calendar
-            if cal is not None:
-                if isinstance(cal, dict):
-                    ed = cal.get("Earnings Date")
-                    if ed:
-                        vals = ed if isinstance(ed, (list, tuple)) else [ed]
-                        for v in vals:
-                            try:
-                                d = pd.Timestamp(v).date()
-                                dates.append(d)
-                            except Exception:
-                                pass
-                elif isinstance(cal, pd.DataFrame) and not cal.empty:
-                    if "Earnings Date" in cal.index:
-                        v = cal.loc["Earnings Date"].iloc[0]
-                        try:
-                            d = pd.Timestamp(v).date()
-                            dates.append(d)
-                        except Exception:
-                            pass
+            pd.Timestamp(df.index[0])
+            df = df.reset_index()
+            date_col = df.columns[0]
         except Exception:
             pass
 
-    # Filter to the requested window
-    try:
-        start_d = date.fromisoformat(start_str)
-        end_d   = date.fromisoformat(end_str)
-        dates   = [d for d in dates if start_d <= d <= end_d]
-    except Exception:
-        pass
+    # If ticker is in the index
+    if ticker_col is None and df.index.name and df.index.name.lower() in ("ticker", "symbol"):
+        df = df.reset_index()
+        ticker_col = df.columns[0]
 
-    return sorted(set(dates))
+    if ticker_col is None or date_col is None:
+        return [], (
+            f"Unexpected data format from yfinance "
+            f"(columns: {list(df.columns)}, index: {df.index.name}). "
+            "Try refreshing or check your yfinance version."
+        )
 
+    start_d = date.fromisoformat(start_str)
+    end_d   = date.fromisoformat(end_str)
 
-@st.cache_data(ttl=0, show_spinner=False)
-def fetch_current_price(symbol: str, _cache_key: int):
-    """Fast price-only fetch for the earnings calendar page."""
-    try:
-        info = yf.Ticker(symbol).info or {}
-        p = info.get("currentPrice") or info.get("regularMarketPrice")
-        return float(p) if p else None
-    except Exception:
-        return None
+    for _, row in df.iterrows():
+        try:
+            sym = str(row[ticker_col]).strip().upper()
+            if not sym or sym == "NAN":
+                continue
+            earn_date = pd.Timestamp(row[date_col]).date()
+            # Guard: keep only dates strictly within the requested window
+            if not (start_d <= earn_date <= end_d):
+                continue
+            # Company name — try common column names, fall back to symbol
+            name = sym
+            for nc in ("companyshortname", "companyName", "company", "Company",
+                       "shortName", "longName", "name", "Name"):
+                if nc in df.columns:
+                    val = str(row.get(nc, "")).strip()
+                    if val and val.lower() not in ("nan", "none", ""):
+                        name = val
+                        break
+            # Price — try common columns
+            price = None
+            for pc in ("gmtOffsetMilliSeconds", "epsestimate", "epsactual"):
+                pass  # not price columns — skip
+            for pc in ("price", "Price", "regularMarketPrice", "currentPrice"):
+                if pc in df.columns:
+                    try:
+                        v = float(row[pc])
+                        if v > 0:
+                            price = v
+                            break
+                    except Exception:
+                        pass
+            rows.append({"sym": sym, "name": name, "price": price, "date": earn_date})
+        except Exception:
+            continue
+
+    rows.sort(key=lambda r: r["date"])
+    return rows, None
 
 
 # ── Shared helpers ─────────────────────────────────────────────────────────────
@@ -805,8 +817,7 @@ if page == "📊  Stock Dashboard":
         st.write("")
         if st.button("⟳  Refresh Data", key="dash_refresh"):
             fetch_ticker_data.clear()
-            fetch_ticker_earnings_for_range.clear()
-            fetch_current_price.clear()
+            fetch_week_earnings.clear()
             st.session_state.last_refresh = datetime.now()
             st.session_state.cache_key += 1
             st.rerun()
@@ -911,13 +922,15 @@ if page == "📊  Stock Dashboard":
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "📅  Earnings Calendar":
 
+    today = date.today()
+
     # ── Header ────────────────────────────────────────────────────────────────
     header_col, btn_col = st.columns([6, 1])
     with header_col:
         st.markdown("""
         <div class="dash-header">
           <span class="dash-title">EARNINGS CALENDAR</span>
-          <span class="dash-pill">10 Tickers</span>
+          <span class="dash-pill">Market-Wide</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
@@ -928,8 +941,7 @@ elif page == "📅  Earnings Calendar":
         st.write("")
         if st.button("⟳  Refresh Data", key="ec_refresh"):
             fetch_ticker_data.clear()
-            fetch_ticker_earnings_for_range.clear()
-            fetch_current_price.clear()
+            fetch_week_earnings.clear()
             st.session_state.last_refresh = datetime.now()
             st.session_state.cache_key += 1
             st.rerun()
@@ -937,10 +949,8 @@ elif page == "📅  Earnings Calendar":
     st.markdown("<hr>", unsafe_allow_html=True)
 
     # ── Month selector ─────────────────────────────────────────────────────────
-    today = date.today()
-
     month_options = []
-    for delta in range(3):
+    for delta in range(4):
         y = today.year + (today.month - 1 + delta) // 12
         m = (today.month - 1 + delta) % 12 + 1
         month_options.append(date(y, m, 1))
@@ -961,133 +971,116 @@ elif page == "📅  Earnings Calendar":
     else:
         month_end = date(selected_month_start.year, selected_month_start.month + 1, 1) - timedelta(days=1)
 
+    # ── Build week buckets for chosen month (Mon–Sun, clipped to month) ────────
     week_buckets = get_week_buckets(selected_month_start, month_end)
+    # week_buckets: list of (label, monday, sunday)
 
-    # ── For each tracked (non-ETF) ticker, fetch earnings for the full month ──
-    # We query per ticker so we get accurate results regardless of how
-    # yf.get_earnings_calendar handles our specific symbols.
-    TRACKED_SYMS = [s for s in TICKERS if s not in NO_EARNINGS]
+    # ── Tab labels: Week 1 … Week N ───────────────────────────────────────────
+    tab_labels = [f"Week {i+1}  ({wk_mon.strftime('%b %d')} – {wk_sun.strftime('%b %d')})"
+                  for i, (_, wk_mon, wk_sun) in enumerate(week_buckets)]
 
-    month_start_str = selected_month_start.strftime("%Y-%m-%d")
-    month_end_str   = month_end.strftime("%Y-%m-%d")
+    tabs = st.tabs(tab_labels)
 
-    earnings_by_ticker = {}   # sym -> list[date]  (dates within the full month)
-    price_by_ticker    = {}   # sym -> float | None
+    # ── Render each tab independently ─────────────────────────────────────────
+    for tab_idx, (tab, (wk_label, wk_mon, wk_sun)) in enumerate(zip(tabs, week_buckets)):
+        with tab:
+            wk_start_str = wk_mon.strftime("%Y-%m-%d")
+            wk_end_str   = wk_sun.strftime("%Y-%m-%d")
+            wk_range_str = f"{wk_mon.strftime('%b %d, %Y')} – {wk_sun.strftime('%b %d, %Y')}"
 
-    progress_placeholder = st.empty()
-    with progress_placeholder:
-        with st.spinner(f"Fetching earnings data for {selected_month_label}…"):
-            for sym in TRACKED_SYMS:
+            # Contextual label (Current Week / Next Week / plain range)
+            current_mon, _ = week_bounds(0)
+            next_mon,    _ = week_bounds(1)
+            if wk_mon == current_mon:
+                context_label = "📅 Current Week"
+            elif wk_mon == next_mon:
+                context_label = "📅 Next Week"
+            else:
+                context_label = f"📅 {wk_label}"
+
+            st.markdown(f"""
+            <div class="ec-section-head" style="margin-bottom:18px;">
+              <span class="ec-section-title">{context_label}</span>
+              <span class="ec-section-range">· {wk_range_str}</span>
+            </div>""", unsafe_allow_html=True)
+
+            # ── Single API call per week (cached by start+end+cache_key) ──────
+            # Because start_str / end_str are different per tab, Streamlit's
+            # cache treats each week as a separate entry.  Switching tabs does
+            # NOT trigger a new network call if that week was already fetched.
+            with st.spinner(f"Loading earnings for {wk_range_str}…"):
                 try:
-                    dates = fetch_ticker_earnings_for_range(
-                        sym, month_start_str, month_end_str,
+                    week_rows, api_error = fetch_week_earnings(
+                        wk_start_str, wk_end_str,
                         st.session_state.cache_key,
                     )
-                    earnings_by_ticker[sym] = dates
-                except Exception:
-                    earnings_by_ticker[sym] = []
+                except Exception as exc:
+                    week_rows  = []
+                    api_error  = str(exc)
 
-                try:
-                    price_by_ticker[sym] = fetch_current_price(
-                        sym, st.session_state.cache_key
-                    )
-                except Exception:
-                    price_by_ticker[sym] = None
+            # ── Error state ───────────────────────────────────────────────────
+            if api_error:
+                st.markdown(f"""
+                <div class="ec-empty" style="border-color:rgba(255,77,106,0.35);">
+                  <div class="ec-empty-icon">⚠️</div>
+                  <div class="ec-empty-title" style="color:#ff8096;">
+                    Could not load earnings data
+                  </div>
+                  <div class="ec-empty-sub">{api_error}</div>
+                </div>""", unsafe_allow_html=True)
+                continue
 
-    progress_placeholder.empty()
+            # ── Empty state ───────────────────────────────────────────────────
+            if not week_rows:
+                st.markdown(f"""
+                <div class="ec-empty">
+                  <div class="ec-empty-icon">🗓️</div>
+                  <div class="ec-empty-title">No earnings scheduled this week</div>
+                  <div class="ec-empty-sub">
+                    No companies reported for {wk_range_str}.<br>
+                    This is normal for holiday weeks or if yfinance has no data yet for this period.
+                  </div>
+                </div>""", unsafe_allow_html=True)
+                continue
 
-    # ── Render week-by-week ────────────────────────────────────────────────────
-    for wk_label, wk_mon, wk_sun in week_buckets:
-        wk_range_str = f"{wk_mon.strftime('%b %d')} – {wk_sun.strftime('%b %d, %Y')}"
-
-        # Find all tracked tickers whose earnings date falls in this week window
-        week_rows = []
-        for sym in TRACKED_SYMS:
-            all_dates = earnings_by_ticker.get(sym, [])
-            # Check if any of this ticker's earnings dates fall within Mon–Sun
-            matched_dates = [d for d in all_dates if wk_mon <= d <= wk_sun]
-            if matched_dates:
-                week_rows.append({
-                    "sym":   sym,
-                    "name":  TICKERS[sym],
-                    "price": price_by_ticker.get(sym),
-                    "date":  matched_dates[0],   # use the earliest matched date
-                })
-
-        week_rows.sort(key=lambda r: r["date"])
-        count    = len(week_rows)
-        cnt_cls  = "ec-section-count" if count > 0 else "ec-section-count zero"
-        cnt_text = f"{count} ticker{'s' if count != 1 else ''}"
-
-        # Section header (always shown for every week in the month)
-        st.markdown(f"""
-        <div class="ec-week-block">
-          <div class="ec-section-head">
-            <span class="ec-section-title">{wk_label.upper()}</span>
-            <span class="ec-section-range">· {wk_range_str}</span>
-            <span class="{cnt_cls}">{cnt_text}</span>
-          </div>
-        </div>""", unsafe_allow_html=True)
-
-        if not week_rows:
-            st.markdown("""
-            <div class="ec-empty">
-              <div class="ec-empty-icon">🗓️</div>
-              <div class="ec-empty-title">No earnings scheduled for this week</div>
-              <div class="ec-empty-sub">None of the tracked tickers report during this window.</div>
+            # ── Results table ─────────────────────────────────────────────────
+            st.markdown(f"""
+            <div class="ec-section-count" style="display:inline-block;margin-bottom:14px;">
+              {len(week_rows)} companies reporting
             </div>""", unsafe_allow_html=True)
-            continue
 
-        # Build table rows
-        rows_html = ""
-        for r in week_rows:
-            d        = r["date"]
-            is_today = (d == today)
-            is_tmrw  = (d == today + timedelta(days=1))
-            pill_cls = "today" if is_today else "upcoming"
-            day_str  = ("TODAY"    if is_today
-                        else "TOMORROW" if is_tmrw
-                        else d.strftime("%a, %b %d"))
-            rows_html += f"""
-            <tr>
-              <td>
-                <div class="ec-sym">{r['sym']}</div>
-                <div class="ec-name">{r['name']}</div>
-              </td>
-              <td class="ec-price">{fmt_price(r['price'])}</td>
-              <td class="ec-date-cell">
-                <span class="ec-date-pill {pill_cls}">{day_str}</span>
-              </td>
-            </tr>"""
+            rows_html = ""
+            for r in week_rows:
+                d        = r["date"]
+                is_today = (d == today)
+                is_tmrw  = (d == today + timedelta(days=1))
+                pill_cls = "today" if is_today else "upcoming"
+                day_str  = ("TODAY"    if is_today
+                            else "TOMORROW" if is_tmrw
+                            else d.strftime("%a, %b %d"))
+                price_str = fmt_price(r["price"]) if r.get("price") else "—"
+                rows_html += f"""
+                <tr>
+                  <td>
+                    <div class="ec-sym">{r['sym']}</div>
+                    <div class="ec-name">{r['name']}</div>
+                  </td>
+                  <td class="ec-price">{price_str}</td>
+                  <td class="ec-date-cell">
+                    <span class="ec-date-pill {pill_cls}">{day_str}</span>
+                  </td>
+                </tr>"""
 
-        st.markdown(f"""
-        <table class="ec-table">
-          <thead>
-            <tr>
-              <th>Ticker / Company</th>
-              <th style="text-align:right">Current Price</th>
-              <th style="text-align:right">Earnings Date</th>
-            </tr>
-          </thead>
-          <tbody>{rows_html}</tbody>
-        </table>""", unsafe_allow_html=True)
+            st.markdown(f"""
+            <table class="ec-table">
+              <thead>
+                <tr>
+                  <th>Ticker / Company</th>
+                  <th style="text-align:right">Current Price</th>
+                  <th style="text-align:right">Earnings Date</th>
+                </tr>
+              </thead>
+              <tbody>{rows_html}</tbody>
+            </table>""", unsafe_allow_html=True)
 
     st.write("")
-
-    # ── ETFs / no-earnings — always shown, collapsed ───────────────────────────
-    na_rows = [{"sym": s, "name": n} for s, n in TICKERS.items() if s in NO_EARNINGS]
-    if na_rows:
-        with st.expander(
-            f"🚫  {len(na_rows)} ticker(s) don't report earnings (ETFs / Trusts)",
-            expanded=False,
-        ):
-            for r in na_rows:
-                st.markdown(f"""
-                <div class="ec-na-card">
-                  <span class="ec-na-icon">📦</span>
-                  <div>
-                    <div class="ec-na-sym">{r['sym']}</div>
-                    <div class="ec-na-name">{r['name']}</div>
-                  </div>
-                  <span class="ec-na-badge">Not Applicable</span>
-                </div>""", unsafe_allow_html=True)
