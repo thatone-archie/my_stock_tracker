@@ -462,7 +462,7 @@ with header_col:
     <div class="dash-header">
       <div class="dash-logo">📈</div>
       <span class="dash-title">MARKET TRACKER</span>
-      <span class="dash-pill">Live · 10 Assets</span>
+      <span class="dash-pill">Live · 10 Assets · ET Time zone_New_York</span>
     </div>""", unsafe_allow_html=True)
     st.markdown(
         f'<div class="dash-timestamp">'
