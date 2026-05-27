@@ -32,7 +32,7 @@ st.markdown("""
   --border2:   #252b3b;
   --text:      #f0f4ff;
   --text2:     #c8d0e0;
-  --muted:     #5a6480;
+  --muted:     #300545;
   --accent:    #3b9eff;
   --green:     #1fd97a;
   --green-bg:  rgba(31,217,122,0.12);
