@@ -30,7 +30,7 @@ st.markdown("""
   --surface2:  #181b24;
   --border:    #1e2332;
   --border2:   #252b3b;
-  --text:      #f0f4ff;
+  --text:      #38134a;
   --text2:     #c8d0e0;
   --muted:     #38134a;
   --accent:    #3b9eff;
@@ -82,7 +82,7 @@ html, body, [class*="css"] {
 }
 .dash-timestamp {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   color: var(--muted);
   margin-top: 4px;
   margin-bottom: 22px;
