@@ -595,102 +595,96 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
 @st.cache_data(ttl=0, show_spinner=False)
 def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     """
-    Call yf.get_earnings_calendar(start, end) ONCE for the given week window.
-    Returns a list of dicts:
-        [{"sym": str, "name": str, "price": float|None, "date": date}, ...]
-    sorted by earnings date.  Returns [] on error/no data.
+    Fetch earnings for ALL tracked (non-ETF) tickers that fall within [start_str, end_str].
 
-    The cache key changes only when the user hits Refresh, so switching between
-    weeks (different start/end strings) always triggers a fresh API call because
-    the arguments differ — exactly what we want.
+    Strategy per ticker:
+      1. ticker.get_earnings_dates(limit=20)  — returns upcoming + recent dates
+      2. Fall back to ticker.calendar          — gives the next window if (1) is empty
+
+    Returns (rows, error_msg):
+      rows      — list of {"sym", "name", "price", "date"} sorted by date
+      error_msg — str if a hard error occurred, else None
     """
-    rows = []
-    error_msg = None
-
-    try:
-        df = yf.get_earnings_calendar(start=start_str, end=end_str)
-    except Exception as exc:
-        return [], f"API error: {exc}"
-
-    if df is None or df.empty:
-        return [], None   # no data — not an error
-
-    # ── Detect columns (yfinance column names vary by version) ──────────────
-    # Print columns to help debug; silently ignored in production
-    ticker_col = None
-    for c in ("ticker", "Ticker", "symbol", "Symbol"):
-        if c in df.columns:
-            ticker_col = c
-            break
-
-    date_col = None
-    for c in ("startdatetime", "startDateTime", "Startdatetime",
-              "date", "Date", "Earnings Date", "earningsDate"):
-        if c in df.columns:
-            date_col = c
-            break
-
-    # If the index looks like dates, use it
-    if date_col is None:
-        try:
-            pd.Timestamp(df.index[0])
-            df = df.reset_index()
-            date_col = df.columns[0]
-        except Exception:
-            pass
-
-    # If ticker is in the index
-    if ticker_col is None and df.index.name and df.index.name.lower() in ("ticker", "symbol"):
-        df = df.reset_index()
-        ticker_col = df.columns[0]
-
-    if ticker_col is None or date_col is None:
-        return [], (
-            f"Unexpected data format from yfinance "
-            f"(columns: {list(df.columns)}, index: {df.index.name}). "
-            "Try refreshing or check your yfinance version."
-        )
-
     start_d = date.fromisoformat(start_str)
     end_d   = date.fromisoformat(end_str)
+    rows    = []
+    errors  = []
 
-    for _, row in df.iterrows():
-        try:
-            sym = str(row[ticker_col]).strip().upper()
-            if not sym or sym == "NAN":
-                continue
-            earn_date = pd.Timestamp(row[date_col]).date()
-            # Guard: keep only dates strictly within the requested window
-            if not (start_d <= earn_date <= end_d):
-                continue
-            # Company name — try common column names, fall back to symbol
-            name = sym
-            for nc in ("companyshortname", "companyName", "company", "Company",
-                       "shortName", "longName", "name", "Name"):
-                if nc in df.columns:
-                    val = str(row.get(nc, "")).strip()
-                    if val and val.lower() not in ("nan", "none", ""):
-                        name = val
-                        break
-            # Price — try common columns
-            price = None
-            for pc in ("gmtOffsetMilliSeconds", "epsestimate", "epsactual"):
-                pass  # not price columns — skip
-            for pc in ("price", "Price", "regularMarketPrice", "currentPrice"):
-                if pc in df.columns:
-                    try:
-                        v = float(row[pc])
-                        if v > 0:
-                            price = v
-                            break
-                    except Exception:
-                        pass
-            rows.append({"sym": sym, "name": name, "price": price, "date": earn_date})
-        except Exception:
+    for sym, company_name in TICKERS.items():
+        if sym in NO_EARNINGS:
             continue
 
+        dates_found = []
+
+        # ── Method 1: get_earnings_dates ─────────────────────────────────────
+        try:
+            t   = yf.Ticker(sym)
+            raw = t.get_earnings_dates(limit=20)
+            if raw is not None and not raw.empty:
+                for ts in raw.index:
+                    try:
+                        d = ts.date() if hasattr(ts, "date") else pd.Timestamp(ts).date()
+                        dates_found.append(d)
+                    except Exception:
+                        pass
+        except Exception as e:
+            errors.append(f"{sym}: {e}")
+
+        # ── Method 2: ticker.calendar (fallback / supplement) ─────────────────
+        try:
+            t   = yf.Ticker(sym)
+            cal = t.calendar
+            if cal is not None:
+                if isinstance(cal, dict):
+                    ed = cal.get("Earnings Date")
+                    if ed:
+                        vals = ed if isinstance(ed, (list, tuple)) else [ed]
+                        for v in vals:
+                            try:
+                                dates_found.append(pd.Timestamp(v).date())
+                            except Exception:
+                                pass
+                elif isinstance(cal, pd.DataFrame) and not cal.empty:
+                    if "Earnings Date" in cal.index:
+                        for v in (cal.loc["Earnings Date"]
+                                  if hasattr(cal.loc["Earnings Date"], "__iter__")
+                                  else [cal.loc["Earnings Date"].iloc[0]]):
+                            try:
+                                dates_found.append(pd.Timestamp(v).date())
+                            except Exception:
+                                pass
+        except Exception as e:
+            errors.append(f"{sym} (calendar): {e}")
+
+        # ── Filter to the requested week window ───────────────────────────────
+        matched = [d for d in set(dates_found) if start_d <= d <= end_d]
+        if matched:
+            earn_date = sorted(matched)[0]
+
+            # Fetch current price
+            price = None
+            try:
+                info  = yf.Ticker(sym).info or {}
+                p     = info.get("currentPrice") or info.get("regularMarketPrice")
+                price = float(p) if p else None
+            except Exception:
+                pass
+
+            rows.append({
+                "sym":   sym,
+                "name":  company_name,
+                "price": price,
+                "date":  earn_date,
+            })
+
     rows.sort(key=lambda r: r["date"])
-    return rows, None
+
+    # Only surface errors if we got zero rows (partial errors are noise)
+    error_msg = None
+    if not rows and errors:
+        error_msg = "Could not retrieve earnings data: " + "; ".join(errors[:3])
+
+    return rows, error_msg
 
 
 # ── Shared helpers ─────────────────────────────────────────────────────────────
@@ -943,7 +937,7 @@ elif page == "📅  Earnings Calendar":
             fetch_ticker_data.clear()
             fetch_week_earnings.clear()
             st.session_state.last_refresh = datetime.now()
-            st.session_state.cache_key += 1
+            st.session_state.cache_key   += 1
             st.rerun()
 
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -1037,8 +1031,8 @@ elif page == "📅  Earnings Calendar":
                   <div class="ec-empty-icon">🗓️</div>
                   <div class="ec-empty-title">No earnings scheduled this week</div>
                   <div class="ec-empty-sub">
-                    No companies reported for {wk_range_str}.<br>
-                    This is normal for holiday weeks or if yfinance has no data yet for this period.
+                    None of the 10 tracked tickers report earnings during<br>
+                    {wk_range_str}.
                   </div>
                 </div>""", unsafe_allow_html=True)
                 continue
