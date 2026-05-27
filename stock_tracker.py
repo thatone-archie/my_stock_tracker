@@ -32,7 +32,7 @@ st.markdown("""
   --border2:   #252b3b;
   --text:      #f0f4ff;
   --text2:     #c8d0e0;
-  --muted:     #300545;
+  --muted:     #38134a;
   --accent:    #3b9eff;
   --green:     #1fd97a;
   --green-bg:  rgba(31,217,122,0.12);
@@ -188,10 +188,10 @@ html, body, [class*="css"] {
   font-weight: 600;
   color: var(--text);
 }
-.ah-chg-up   { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--green); }
-.ah-chg-down { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--red); }
-.ah-chg-flat { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--text2); }
-.ah-na { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+.ah-chg-up   { font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; font-weight: 500; color: var(--green); }
+.ah-chg-down { font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; font-weight: 500; color: var(--red); }
+.ah-chg-flat { font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; font-weight: 500; color: var(--text2); }
+.ah-na { font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem; color: var(--muted); }
 
 /* ── Metrics row ── */
 .metrics-row {
@@ -210,7 +210,7 @@ html, body, [class*="css"] {
   border-left: 1px solid var(--border);
 }
 .metric-label {
-  font-size: 0.68rem;
+  font-size: 1.08rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
@@ -219,7 +219,7 @@ html, body, [class*="css"] {
 }
 .metric-value {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 500;
   color: var(--text);
 }
