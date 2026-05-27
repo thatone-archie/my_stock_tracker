@@ -30,7 +30,7 @@ st.markdown("""
   --surface2:  #181b24;
   --border:    #1e2332;
   --border2:   #252b3b;
-  --text:      #38134a;
+  --text:      #f0f4ff;
   --text2:     #c8d0e0;
   --muted:     #38134a;
   --accent:    #3b9eff;
@@ -221,7 +221,7 @@ html, body, [class*="css"] {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 1.05rem;
   font-weight: 500;
-  color: var(--text);
+  color: var(--muted);
 }
 
 /* ── Error card ── */
