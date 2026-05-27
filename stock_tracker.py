@@ -153,11 +153,11 @@ div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-c
   font-family: 'IBM Plex Mono', monospace;
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--muted);
   letter-spacing: -0.02em;
 }
 .dash-pill {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   color: var(--accent);
   background: rgba(59,158,255,0.12);
   border: 1px solid rgba(59,158,255,0.25);
@@ -280,7 +280,7 @@ div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-c
 .metric-block { flex: 1; padding-right: 16px; }
 .metric-block + .metric-block { padding-left: 16px; border-left: 1px solid var(--border); }
 .metric-label {
-  font-size: 0.8rem;
+  font-size: 1.0rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
@@ -291,7 +291,7 @@ div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-c
   font-family: 'IBM Plex Mono', monospace;
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--text);
+  color: var(--muted);
 }
 
 .error-card {
@@ -800,7 +800,7 @@ if page == "📊  Stock Dashboard":
         st.markdown("""
         <div class="dash-header">
           <span class="dash-title">STOCK DASHBOARD</span>
-          <span class="dash-pill">Live · 10 Assets</span>
+          <span class="dash-pill">Live · 10 Assets · ET_New_York_TimeZone</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
