@@ -181,6 +181,14 @@ button[data-testid="collapsedControl"] {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
   font-weight: 600; color: #1565a8; line-height: 1.3;
 }
+.metric-value-earnings-soon {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
+  font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #e65c00, #f9a825);
+  padding: 2px 7px; border-radius: 5px;
+  display: inline-block; line-height: 1.4;
+  box-shadow: 0 1px 4px rgba(230,92,0,0.3);
+}
 
 .error-card {
   background: rgba(255,77,106,0.06); border: 1px solid rgba(255,77,106,0.22);
@@ -287,6 +295,8 @@ TICKERS = {
     "NVMI":  "Nova Ltd",
     "MRVL":  "Marvell Technology",
     "SOXX":  "iShares Semiconductor ETF",
+    "GOOG":  "Alphabet Inc.",
+    "ORCL":  "Oracle Corporation",
     "SPY":   "SPDR S&P 500 ETF",
     "IAU":   "iShares Gold Trust",
     "RKLB":  "Rocket Lab Corp",
@@ -672,6 +682,18 @@ if page == "📊  Stock Dashboard":
                 earnings_label = "N/A" if sym in ETF_TICKERS else data["earnings"]
                 week52         = data["week52_range"]
                 price_tgt      = "N/A" if sym in ETF_TICKERS else data["price_target"]
+
+                # Determine if earnings is within 30 days → highlight
+                earnings_cls = "metric-value"
+                if earnings_label not in ("N/A", "Unavailable", "—") and sym not in ETF_TICKERS:
+                    try:
+                        earn_dt = datetime.strptime(earnings_label, "%b-%d-%Y").date()
+                        days_away = (earn_dt - date.today()).days
+                        if 0 <= days_away <= 30:
+                            earnings_cls = "metric-value-earnings-soon"
+                    except Exception:
+                        pass
+
                 st.markdown(f"""
                 <div class="metrics-row">
                   <div class="metric-block">
@@ -680,7 +702,7 @@ if page == "📊  Stock Dashboard":
                   </div>
                   <div class="metric-block">
                     <div class="metric-label">Next Earnings</div>
-                    <div class="metric-value">{earnings_label}</div>
+                    <div class="{earnings_cls}">{earnings_label}</div>
                   </div>
                   <div class="metric-block">
                     <div class="metric-label">52W Range</div>
