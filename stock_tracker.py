@@ -1,6 +1,6 @@
 """
 stock_tracker.py — Multi-page: Stock Dashboard + Earnings Calendar
-Setup:  pip install streamlit yfinance plotly pandas pytz
+Setup:  pip install streamlit yfinance plotly pandas pytz yahoo_fin
 Run:    streamlit run stock_tracker.py
 """
 
@@ -52,8 +52,8 @@ html, body, [class*="css"] {
    SIDEBAR
    ════════════════════════════════════════ */
 section[data-testid="stSidebar"] {
-  background: #0d1117 !important;
-  border-right: 1px solid #1e2332 !important;
+  background: #d6eaf8 !important;
+  border-right: 1px solid #a9cce3 !important;
   min-width: 240px !important;
   max-width: 240px !important;
 }
@@ -62,7 +62,7 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] p,
 section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] div {
-  color: #c8d0e0;
+  color: #1a3a52;
 }
 
 /* Selectbox label */
@@ -72,44 +72,44 @@ section[data-testid="stSidebar"] label {
   font-weight: 700 !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
-  color: #3b9eff !important;
+  color: #1565a8 !important;
 }
 
 /* Selectbox control box */
 section[data-testid="stSidebar"] [data-baseweb="select"] > div:first-child {
-  background: #181b24 !important;
-  border: 1px solid #2d3650 !important;
+  background: #eaf4fc !important;
+  border: 1px solid #7fb3d3 !important;
   border-radius: 8px !important;
 }
 /* Selected value text inside the box */
 section[data-testid="stSidebar"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] p,
 section[data-testid="stSidebar"] [data-baseweb="select"] span,
 section[data-testid="stSidebar"] [data-baseweb="select"] div {
-  color: #f0f4ff !important;
+  color: #1a3a52 !important;
   font-family: 'IBM Plex Mono', monospace !important;
   font-size: 0.88rem !important;
   font-weight: 600 !important;
 }
 /* Dropdown arrow */
 section[data-testid="stSidebar"] [data-baseweb="select"] svg {
-  fill: #3b9eff !important;
+  fill: #1565a8 !important;
 }
 /* Dropdown menu panel */
 [data-baseweb="popover"] ul {
-  background: #181b24 !important;
-  border: 1px solid #2d3650 !important;
+  background: #eaf4fc !important;
+  border: 1px solid #7fb3d3 !important;
   border-radius: 8px !important;
 }
 [data-baseweb="popover"] li {
-  background: #181b24 !important;
-  color: #c8d0e0 !important;
+  background: #eaf4fc !important;
+  color: #1a3a52 !important;
   font-family: 'IBM Plex Mono', monospace !important;
   font-size: 0.85rem !important;
 }
 [data-baseweb="popover"] li:hover,
 [data-baseweb="popover"] li[aria-selected="true"] {
-  background: #252b3b !important;
-  color: #f0f4ff !important;
+  background: #c2dcef !important;
+  color: #0d2b3e !important;
 }
 
 /* ════════════════════════════════════════
@@ -434,10 +434,12 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
 @st.cache_data(ttl=0, show_spinner=False)
 def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     """
-    1. yf.get_earnings_calendar(start, end)  — bulk pull for the date window
-    2. ticker.calendar per-ticker fallback    — for any equity not found in bulk
+    Fetches the earnings calendar for the given week using yahoo_fin.
+    Falls back to yfinance per-ticker calendar if yahoo_fin fails.
     Returns (rows, error_msg).
     """
+    import yahoo_fin.stock_info as si
+
     start_d = date.fromisoformat(start_str)
     end_d   = date.fromisoformat(end_str)
     equity_syms = {s for s in TICKERS if s not in NO_EARNINGS}
@@ -445,17 +447,20 @@ def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     bulk_hits: dict[str, date] = {}
     errors: list = []
 
-    # ── Bulk call ──────────────────────────────────────────────────────────────
+    # ── yahoo_fin bulk call ────────────────────────────────────────────────────
     try:
-        raw = yf.get_earnings_calendar(start=start_str, end=end_str)
+        raw = si.get_earnings_calendar()
         if raw is not None and not raw.empty:
             df = raw.copy()
+            # Normalize column names
             df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-            ticker_col = next((c for c in df.columns if "ticker" in c or "symbol" in c), None)
-            date_col   = next(
+            ticker_col = next(
+                (c for c in df.columns if c in ("ticker", "symbol", "company")), None
+            )
+            date_col = next(
                 (c for c in df.columns
-                 if c in ("earnings_date", "date", "report_date")
-                 or ("date" in c and "earnings" in c)), None
+                 if c in ("startdatetime", "earnings_date", "date", "report_date")
+                 or ("date" in c)), None
             )
             if ticker_col and date_col:
                 for _, row in df.iterrows():
@@ -468,10 +473,15 @@ def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
                                     bulk_hits[sym] = d
                         except Exception:
                             pass
+            else:
+                errors.append(
+                    f"yahoo_fin: could not identify ticker/date columns "
+                    f"(found: {list(df.columns)})"
+                )
     except Exception as exc:
-        errors.append(f"get_earnings_calendar: {exc}")
+        errors.append(f"yahoo_fin.get_earnings_calendar: {exc}")
 
-    # ── Per-ticker fallback ────────────────────────────────────────────────────
+    # ── Per-ticker yfinance fallback for any sym not found via yahoo_fin ───────
     for sym in equity_syms - set(bulk_hits.keys()):
         try:
             cal = yf.Ticker(sym).calendar
@@ -533,12 +543,12 @@ if "ec_week_offset" not in st.session_state:
 with st.sidebar:
     st.markdown(
         "<div style='font-family:IBM Plex Mono,monospace; font-size:1rem; "
-        "font-weight:700; color:#3b9eff; padding: 16px 0 8px 0; "
+        "font-weight:700; color:#1565a8; padding: 16px 0 8px 0; "
         "letter-spacing:0.04em;'>📈 MARKET TRACKER</div>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='height:1px; background:#1e2332; margin-bottom:16px;'></div>",
+        "<div style='height:1px; background:#7fb3d3; margin-bottom:16px;'></div>",
         unsafe_allow_html=True,
     )
 
@@ -550,12 +560,12 @@ with st.sidebar:
     )
 
     st.markdown(
-        "<div style='height:1px; background:#1e2332; margin-top:20px; margin-bottom:10px;'></div>",
+        "<div style='height:1px; background:#7fb3d3; margin-top:20px; margin-bottom:10px;'></div>",
         unsafe_allow_html=True,
     )
     st.markdown(
         "<div style='font-family:IBM Plex Mono,monospace; font-size:0.65rem; "
-        "color:#3b9eff; text-align:center;'>Data via yfinance · US markets</div>",
+        "color:#1565a8; text-align:center;'>Data via yfinance · US markets</div>",
         unsafe_allow_html=True,
     )
 
