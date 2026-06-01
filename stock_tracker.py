@@ -129,7 +129,7 @@ button[data-testid="collapsedControl"] {
 }
 .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
 .card-ticker { font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; font-weight: 700; color: #1565a8; letter-spacing: 0.04em; }
-.card-name   { font-size: 0.78rem; color: #3a6080; margin-top: 2px; font-weight: 400; }
+.card-name   { font-size: 0.98rem; color: #3a6080; margin-top: 2px; font-weight: 400; }
 .price-main  {
   font-family: 'IBM Plex Mono', monospace; font-size: 1.45rem;
   font-weight: 700; color: #0d2b3e; line-height: 1;
