@@ -49,16 +49,40 @@ html, body, [class*="css"] {
 }
 
 /* ════════════════════════════════════════
-   SIDEBAR
+   SIDEBAR — pastel blue, slidable
    ════════════════════════════════════════ */
 section[data-testid="stSidebar"] {
   background: #d6eaf8 !important;
   border-right: 1px solid #a9cce3 !important;
   min-width: 240px !important;
   max-width: 240px !important;
+  transition: transform 0.3s ease, width 0.3s ease !important;
 }
 
-/* Ensure sidebar text is visible — do NOT use * override */
+/* Style the native Streamlit collapse toggle button */
+button[data-testid="collapsedControl"],
+button[aria-label="Close sidebar"],
+button[aria-label="Open sidebar"] {
+  background: #1565a8 !important;
+  border-radius: 0 8px 8px 0 !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 2px 0 8px rgba(21,101,168,0.25) !important;
+  transition: background 0.2s !important;
+}
+button[data-testid="collapsedControl"]:hover,
+button[aria-label="Close sidebar"]:hover,
+button[aria-label="Open sidebar"]:hover {
+  background: #0d47a1 !important;
+}
+button[data-testid="collapsedControl"] svg,
+button[aria-label="Close sidebar"] svg,
+button[aria-label="Open sidebar"] svg {
+  fill: #fff !important;
+  stroke: #fff !important;
+}
+
+/* Ensure sidebar text is visible */
 section[data-testid="stSidebar"] p,
 section[data-testid="stSidebar"] span,
 section[data-testid="stSidebar"] div {
@@ -132,61 +156,62 @@ section[data-testid="stSidebar"] [data-baseweb="select"] svg {
 }
 
 /* ════════════════════════════════════════
-   STOCK DASHBOARD CARDS
+   STOCK DASHBOARD CARDS — pastel palette
    ════════════════════════════════════════ */
 .card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 18px 20px 16px; margin-bottom: 2px;
+  background: #eaf4fc;
+  border: 1px solid #a9cce3;
+  border-radius: 14px; padding: 14px 16px 12px; margin-bottom: 2px;
 }
-.card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.card-ticker { font-family: 'IBM Plex Mono', monospace; font-size: 1.45rem; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; }
-.card-name   { font-size: 1.0rem; color: var(--text2); margin-top: 3px; font-weight: 400; }
+.card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card-ticker { font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; font-weight: 700; color: #1565a8; letter-spacing: 0.04em; }
+.card-name   { font-size: 0.78rem; color: #3a6080; margin-top: 2px; font-weight: 400; }
 .price-main  {
-  font-family: 'IBM Plex Mono', monospace; font-size: 1.7rem;
-  font-weight: 600; color: var(--text); line-height: 1;
-  margin-bottom: 8px; letter-spacing: -0.02em;
+  font-family: 'IBM Plex Mono', monospace; font-size: 1.45rem;
+  font-weight: 700; color: #0d2b3e; line-height: 1;
+  margin-bottom: 6px; letter-spacing: -0.02em;
 }
 .change-row  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .badge {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; font-weight: 600;
-  padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 600;
+  padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;
 }
 .badge-label {
-  font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.75; margin-right: 2px;
 }
-.badge-up   { color: var(--green); background: var(--green-bg); }
-.badge-down { color: var(--red);   background: var(--red-bg);   }
-.badge-flat { color: var(--text2); background: var(--surface2); }
+.badge-up   { color: #0a6640; background: rgba(31,217,122,0.18); border: 1px solid rgba(31,217,122,0.35); }
+.badge-down { color: #a8001e; background: rgba(255,77,106,0.15); border: 1px solid rgba(255,77,106,0.3); }
+.badge-flat { color: #3a6080; background: rgba(59,96,128,0.10); border: 1px solid rgba(59,96,128,0.2); }
 
 .ah-block {
   display: flex; align-items: center; gap: 8px; margin-top: 6px;
-  padding: 7px 10px; background: var(--surface2);
-  border: 1px solid var(--border2); border-radius: 8px; flex-wrap: wrap;
+  padding: 5px 9px; background: #ddeef8;
+  border: 1px solid #a9cce3; border-radius: 8px; flex-wrap: wrap;
 }
 .ah-label {
-  font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.09em; color: var(--amber); background: var(--amber-bg);
+  font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.09em; color: #7a5000; background: rgba(255,179,71,0.25);
   padding: 2px 7px; border-radius: 4px; white-space: nowrap;
 }
-.ah-price    { font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; font-weight: 600; color: var(--text); }
-.ah-chg-up   { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--green); }
-.ah-chg-down { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--red); }
-.ah-na       { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+.ah-price    { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; font-weight: 600; color: #0d2b3e; }
+.ah-chg-up   { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 500; color: #0a6640; }
+.ah-chg-down { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 500; color: #a8001e; }
+.ah-na       { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: #5a7a90; }
 
 .metrics-row {
-  display: flex; gap: 0; margin-top: 12px;
-  padding-top: 12px; border-top: 1px solid var(--border);
+  display: flex; gap: 0; margin-top: 10px;
+  padding-top: 10px; border-top: 1px solid #a9cce3;
 }
-.metric-block { flex: 1; padding-right: 16px; }
-.metric-block + .metric-block { padding-left: 16px; border-left: 1px solid var(--border); }
+.metric-block { flex: 1; padding-right: 12px; }
+.metric-block + .metric-block { padding-left: 12px; border-left: 1px solid #a9cce3; }
 .metric-label {
-  font-size: 1.0rem; font-weight: 600; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 4px;
+  font-size: 0.6rem; font-weight: 700; color: #5a7a90;
+  text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 3px;
 }
 .metric-value {
-  font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem;
-  font-weight: 500; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem;
+  font-weight: 600; color: #1565a8;
 }
 
 .error-card {
@@ -276,9 +301,11 @@ section[data-testid="stSidebar"] [data-baseweb="select"] svg {
 .stButton > button:hover { opacity: 0.88 !important; }
 
 #MainMenu, footer, header { visibility: hidden; }
-.block-container { padding-top: 28px !important; padding-bottom: 30px !important; }
+.block-container { padding-top: 24px !important; padding-bottom: 30px !important; padding-left: 2rem !important; padding-right: 2rem !important; max-width: 100% !important; }
 hr { border-color: var(--border) !important; margin: 18px 0 22px !important; }
-div[data-testid="stPlotlyChart"] { margin-top: -6px; margin-bottom: -6px; }
+div[data-testid="stPlotlyChart"] { margin-top: -4px; margin-bottom: -4px; }
+/* Tighten column gaps for 4-col layout */
+div[data-testid="column"] { padding-left: 0.4rem !important; padding-right: 0.4rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -332,22 +359,22 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure:
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df.index, y=df["Close"], mode="lines",
-        line=dict(color=color, width=2.2),
+        line=dict(color=color, width=2.0),
         fill="tozeroy", fillcolor=fill,
         hovertemplate="<b>%{x|%H:%M}</b>  $%{y:,.2f}<extra></extra>",
     ))
     fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=4, t=6, b=0), height=170,
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(234,244,252,0)",
+        margin=dict(l=0, r=4, t=4, b=0), height=130,
         xaxis=dict(showgrid=False, zeroline=False, showline=False,
-                   tickfont=dict(family="IBM Plex Mono", size=9, color="#5a6480"),
-                   tickformat="%H:%M", nticks=6),
-        yaxis=dict(showgrid=True, zeroline=False, gridcolor="rgba(255,255,255,0.04)",
-                   tickfont=dict(family="IBM Plex Mono", size=9, color="#5a6480"),
+                   tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
+                   tickformat="%H:%M", nticks=5),
+        yaxis=dict(showgrid=True, zeroline=False, gridcolor="rgba(90,120,144,0.15)",
+                   tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
                    showline=False, tickprefix="$", side="right"),
         hovermode="x unified",
-        hoverlabel=dict(bgcolor="#1a1f2e", bordercolor="#252b3b",
-                        font=dict(family="IBM Plex Mono", size=11, color="#f0f4ff")),
+        hoverlabel=dict(bgcolor="#ddeef8", bordercolor="#a9cce3",
+                        font=dict(family="IBM Plex Mono", size=10, color="#0d2b3e")),
         showlegend=False,
     )
     return fig
@@ -599,9 +626,9 @@ if page == "📊  Stock Dashboard":
     st.markdown("<hr>", unsafe_allow_html=True)
 
     tickers_list = list(TICKERS.keys())
-    for row_start in range(0, len(tickers_list), 2):
-        row_syms = tickers_list[row_start : row_start + 2]
-        cols = st.columns(2, gap="large")
+    for row_start in range(0, len(tickers_list), 4):
+        row_syms = tickers_list[row_start : row_start + 4]
+        cols = st.columns(4, gap="medium")
         for col, sym in zip(cols, row_syms):
             with col:
                 try:
