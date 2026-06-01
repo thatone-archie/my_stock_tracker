@@ -40,8 +40,6 @@ st.markdown("""
   --red-bg:    rgba(255,77,106,0.12);
   --amber:     #ffb347;
   --amber-bg:  rgba(255,179,71,0.10);
-  --purple:    #a78bfa;
-  --purple-bg: rgba(167,139,250,0.10);
 }
 
 html, body, [class*="css"] {
@@ -51,60 +49,36 @@ html, body, [class*="css"] {
 }
 
 /* ════════════════════════════════════════
-   SIDEBAR NAV
+   SIDEBAR
    ════════════════════════════════════════ */
 section[data-testid="stSidebar"] {
-  background: #dbeafe !important;
-  border-right: 1px solid #93c5fd !important;
-  min-width: 220px !important;
-  max-width: 220px !important;
-}
-section[data-testid="stSidebar"] * { color: #1e3a5f !important; }
-.nav-logo-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 0 20px 0;
-}
-.nav-logo {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, #3b9eff 0%, #7c3aed 100%);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; font-size: 16px;
-}
-.nav-brand {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem;
-  font-weight: 700; color: #1e3a5f !important; letter-spacing: 0.02em;
-}
-.nav-divider { height: 1px; background: #93c5fd; margin: 6px 0 14px 0; }
-.nav-section-label {
-  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: #2563eb !important; margin-bottom: 8px;
+  background: #0d1117 !important;
+  border-right: 1px solid #1e2332 !important;
+  min-width: 230px !important;
+  max-width: 230px !important;
 }
 
-/* Sidebar radio as nav */
-div[data-testid="stSidebar"] .stRadio > label { display: none !important; }
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] {
-  gap: 4px !important; flex-direction: column !important;
+/* Sidebar selectbox — style the native widget cleanly */
+section[data-testid="stSidebar"] .stSelectbox label {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #3b9eff !important;
 }
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
-  display: flex !important; align-items: center !important; gap: 10px !important;
-  padding: 9px 12px !important; border-radius: 8px !important;
-  font-size: 0.84rem !important; font-weight: 600 !important;
-  color: #1e40af !important; background: transparent !important;
-  border: 1px solid transparent !important; cursor: pointer !important;
-  transition: all 0.15s !important; width: 100% !important;
+section[data-testid="stSidebar"] .stSelectbox > div > div {
+  background: #181b24 !important;
+  border: 1px solid #252b3b !important;
+  border-radius: 8px !important;
+  color: #f0f4ff !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
 }
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
-  background: #bfdbfe !important; color: #1e3a5f !important; border-color: #93c5fd !important;
+section[data-testid="stSidebar"] .stSelectbox svg {
+  fill: #3b9eff !important;
 }
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:has(input:checked) {
-  background: #2563eb !important; color: #ffffff !important; border-color: #1d4ed8 !important;
-}
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:has(input:checked) * {
-  color: #ffffff !important;
-}
-div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-child {
-  display: none !important;
-}
-.nav-footer-text { font-size: 0.65rem; color: #3b82f6 !important; text-align: center; margin-top: 10px; }
 
 /* ════════════════════════════════════════
    SHARED HEADER
@@ -134,17 +108,16 @@ div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-c
 }
 .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
 .card-ticker { font-family: 'IBM Plex Mono', monospace; font-size: 1.45rem; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; }
-.card-name { font-size: 1.0rem; color: var(--text2); margin-top: 3px; font-weight: 400; }
-.price-main {
+.card-name   { font-size: 1.0rem; color: var(--text2); margin-top: 3px; font-weight: 400; }
+.price-main  {
   font-family: 'IBM Plex Mono', monospace; font-size: 1.7rem;
   font-weight: 600; color: var(--text); line-height: 1;
   margin-bottom: 8px; letter-spacing: -0.02em;
 }
-.change-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.change-row  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .badge {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem;
-  font-weight: 600; padding: 4px 10px; border-radius: 6px;
-  display: inline-flex; align-items: center; gap: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;
 }
 .badge-label {
   font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 600;
@@ -164,10 +137,10 @@ div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-c
   letter-spacing: 0.09em; color: var(--amber); background: var(--amber-bg);
   padding: 2px 7px; border-radius: 4px; white-space: nowrap;
 }
-.ah-price { font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; font-weight: 600; color: var(--text); }
+.ah-price    { font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; font-weight: 600; color: var(--text); }
 .ah-chg-up   { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--green); }
 .ah-chg-down { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; color: var(--red); }
-.ah-na { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--muted); }
+.ah-na       { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--muted); }
 
 .metrics-row {
   display: flex; gap: 0; margin-top: 12px;
@@ -196,80 +169,30 @@ div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label > div:first-c
 /* ════════════════════════════════════════
    EARNINGS CALENDAR
    ════════════════════════════════════════ */
+.ec-nav-context {
+  display: inline-block; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 12px; border-radius: 20px; margin-bottom: 6px;
+}
+.ec-nav-context.current { color: var(--green); background: var(--green-bg); border: 1px solid rgba(31,217,122,0.25); }
+.ec-nav-context.next    { color: var(--accent); background: rgba(59,158,255,0.12); border: 1px solid rgba(59,158,255,0.25); }
+.ec-nav-context.other   { color: var(--text2); background: var(--surface); border: 1px solid var(--border2); }
 
-/* Week navigator bar */
-.ec-nav-bar {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 10px 20px;
-  margin-bottom: 22px;
-}
-.ec-nav-center {
-  flex: 1;
-  text-align: center;
-}
 .ec-nav-week-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.0rem;
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: 0.02em;
+  font-family: 'IBM Plex Mono', monospace; font-size: 1.0rem;
+  font-weight: 600; color: var(--text); letter-spacing: 0.02em;
 }
 .ec-nav-range {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.72rem;
-  color: var(--text2);
-  margin-top: 3px;
-}
-.ec-nav-context {
-  display: inline-block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 2px 10px;
-  border-radius: 20px;
-  margin-bottom: 4px;
-}
-.ec-nav-context.current {
-  color: var(--green); background: var(--green-bg); border: 1px solid rgba(31,217,122,0.25);
-}
-.ec-nav-context.next {
-  color: var(--accent); background: rgba(59,158,255,0.12); border: 1px solid rgba(59,158,255,0.25);
-}
-.ec-nav-context.other {
-  color: var(--text2); background: var(--surface); border: 1px solid var(--border2);
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+  color: var(--text2); margin-top: 3px;
 }
 
-/* Arrow nav buttons — override Streamlit default */
-div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow {
-  background: var(--surface) !important;
-  border: 1px solid var(--border2) !important;
-  border-radius: 8px !important;
-  color: var(--text2) !important;
-  font-size: 1.1rem !important;
-  padding: 8px 16px !important;
-  min-width: 44px !important;
-}
-div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow:hover {
-  background: var(--surface2) !important;
-  color: var(--text) !important;
-}
-
-/* Earnings table */
-.ec-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 0.9rem; margin-bottom: 10px;
-}
+.ec-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 10px; }
 .ec-table th {
   font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2);
-  padding: 10px 16px; border-bottom: 1px solid var(--border2); text-align: left;
-  background: var(--surface2);
+  padding: 10px 16px; border-bottom: 1px solid var(--border2);
+  text-align: left; background: var(--surface2);
 }
 .ec-table th:first-child { border-radius: 10px 0 0 0; }
 .ec-table th:last-child  { border-radius: 0 10px 0 0; text-align: right; }
@@ -277,8 +200,8 @@ div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow:hover {
 .ec-table tr:last-child td { border-bottom: none; }
 .ec-table tr:hover td { background: rgba(255,255,255,0.02); }
 
-.ec-sym  { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; font-weight: 600; color: var(--accent); }
-.ec-name { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
+.ec-sym   { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; font-weight: 600; color: var(--accent); }
+.ec-name  { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
 .ec-price { font-family: 'IBM Plex Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--text); text-align: right; }
 .ec-date-cell { text-align: right; }
 .ec-date-pill {
@@ -289,16 +212,12 @@ div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow:hover {
 .ec-date-pill.tomorrow { background: rgba(255,179,71,0.15); color: var(--amber); border: 1px solid rgba(255,179,71,0.3); }
 .ec-date-pill.upcoming { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
 
-/* Results count badge */
 .ec-count-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-bottom: 14px;
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 14px;
   font-size: 0.72rem; font-weight: 600; color: var(--accent);
   background: rgba(59,158,255,0.10); border: 1px solid rgba(59,158,255,0.2);
   border-radius: 20px; padding: 3px 12px;
 }
-
-/* Empty state */
 .ec-empty {
   text-align: center; padding: 40px 20px; color: var(--muted);
   background: var(--surface); border: 1px dashed var(--border2);
@@ -307,8 +226,6 @@ div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow:hover {
 .ec-empty-icon  { font-size: 2rem; margin-bottom: 8px; }
 .ec-empty-title { font-size: 0.9rem; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
 .ec-empty-sub   { font-size: 0.78rem; color: var(--muted); }
-
-/* ETF note */
 .ec-etf-note {
   font-size: 0.72rem; color: var(--muted); margin-top: 18px;
   padding: 10px 16px; background: var(--surface2);
@@ -316,7 +233,7 @@ div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow:hover {
   font-family: 'IBM Plex Mono', monospace;
 }
 
-/* ── Shared chrome ── */
+/* ── Buttons ── */
 .stButton > button {
   background: linear-gradient(135deg, #3b9eff, #7c3aed) !important;
   color: #fff !important; font-family: 'IBM Plex Mono', monospace !important;
@@ -325,13 +242,6 @@ div[data-testid="stHorizontalBlock"] .stButton > button.ec-arrow:hover {
   border-radius: 8px !important; padding: 10px 24px !important; transition: opacity 0.15s !important;
 }
 .stButton > button:hover { opacity: 0.88 !important; }
-
-/* Selectbox */
-div[data-testid="stSelectbox"] > div > div {
-  background: var(--surface2) !important; border: 1px solid var(--border2) !important;
-  border-radius: 8px !important; color: var(--text) !important;
-  font-family: 'IBM Plex Mono', monospace !important; font-size: 0.82rem !important;
-}
 
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding-top: 28px !important; padding-bottom: 30px !important; }
@@ -354,8 +264,8 @@ TICKERS = {
     "IAU":   "iShares Gold Trust",
     "RKLB":  "Rocket Lab Corp",
 }
-ETF_TICKERS  = {"SOXX", "SPY", "IAU"}
-NO_EARNINGS  = ETF_TICKERS
+ETF_TICKERS = {"SOXX", "SPY", "IAU"}
+NO_EARNINGS = ETF_TICKERS
 
 CHART_UP_LINE   = "#1fd97a"
 CHART_UP_FILL   = "rgba(31,217,122,0.07)"
@@ -367,9 +277,7 @@ ET = pytz.timezone("America/New_York")
 # ══════════════════════════════════════════════════════════════════════════════
 #  HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
-
 def week_monday(ref: date) -> date:
-    """Return the Monday of the week containing ref."""
     return ref - timedelta(days=ref.weekday())
 
 def week_sunday(monday: date) -> date:
@@ -494,42 +402,29 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
 @st.cache_data(ttl=0, show_spinner=False)
 def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     """
-    Uses yf.get_earnings_calendar(start, end) to fetch all earnings in the week.
-    Cross-references results against our TICKERS dict.
-    Falls back to ticker.calendar per-ticker if the bulk call returns nothing useful.
-
-    Returns (rows, error_msg):
-      rows      — list of {"sym","name","price","date"} sorted by date
-      error_msg — str on hard failure, else None
+    1. yf.get_earnings_calendar(start, end)  — bulk pull for the date window
+    2. ticker.calendar per-ticker fallback    — for any equity not found in bulk
+    Returns (rows, error_msg).
     """
     start_d = date.fromisoformat(start_str)
     end_d   = date.fromisoformat(end_str)
     equity_syms = {s for s in TICKERS if s not in NO_EARNINGS}
 
-    rows: list  = []
+    bulk_hits: dict[str, date] = {}
     errors: list = []
 
-    # ── 1. Bulk call via yf.get_earnings_calendar ────────────────────────────
-    bulk_hits: dict[str, date] = {}   # sym -> earliest date in window
+    # ── Bulk call ──────────────────────────────────────────────────────────────
     try:
-        raw = yf.get_earnings_calendar(
-            start=start_str,
-            end=end_str,
-        )
+        raw = yf.get_earnings_calendar(start=start_str, end=end_str)
         if raw is not None and not raw.empty:
             df = raw.copy()
-            # Normalise column names (varies by yfinance version)
             df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-
-            ticker_col = next(
-                (c for c in df.columns if "ticker" in c or "symbol" in c), None
-            )
-            date_col = next(
+            ticker_col = next((c for c in df.columns if "ticker" in c or "symbol" in c), None)
+            date_col   = next(
                 (c for c in df.columns
                  if c in ("earnings_date", "date", "report_date")
                  or ("date" in c and "earnings" in c)), None
             )
-
             if ticker_col and date_col:
                 for _, row in df.iterrows():
                     sym = str(row[ticker_col]).upper().strip()
@@ -544,39 +439,33 @@ def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     except Exception as exc:
         errors.append(f"get_earnings_calendar: {exc}")
 
-    # ── 2. Per-ticker fallback (ticker.calendar) for any equity not in bulk ──
-    missing = equity_syms - set(bulk_hits.keys())
-    for sym in missing:
+    # ── Per-ticker fallback ────────────────────────────────────────────────────
+    for sym in equity_syms - set(bulk_hits.keys()):
         try:
-            t   = yf.Ticker(sym)
-            cal = t.calendar
-            if cal is not None:
-                dates_found = []
-                if isinstance(cal, dict):
-                    ed = cal.get("Earnings Date")
-                    if ed:
-                        vals = ed if isinstance(ed, (list, tuple)) else [ed]
-                        for v in vals:
-                            try:
-                                dates_found.append(pd.Timestamp(v).date())
-                            except Exception:
-                                pass
-                elif isinstance(cal, pd.DataFrame) and not cal.empty:
-                    if "Earnings Date" in cal.index:
-                        cell = cal.loc["Earnings Date"]
-                        iterable = cell if hasattr(cell, "__iter__") else [cell.iloc[0]]
-                        for v in iterable:
-                            try:
-                                dates_found.append(pd.Timestamp(v).date())
-                            except Exception:
-                                pass
-                matched = [d for d in dates_found if start_d <= d <= end_d]
-                if matched:
-                    bulk_hits[sym] = sorted(matched)[0]
+            cal = yf.Ticker(sym).calendar
+            if cal is None:
+                continue
+            dates_found = []
+            if isinstance(cal, dict):
+                ed = cal.get("Earnings Date")
+                if ed:
+                    for v in (ed if isinstance(ed, (list, tuple)) else [ed]):
+                        try: dates_found.append(pd.Timestamp(v).date())
+                        except Exception: pass
+            elif isinstance(cal, pd.DataFrame) and not cal.empty:
+                if "Earnings Date" in cal.index:
+                    cell = cal.loc["Earnings Date"]
+                    for v in (cell if hasattr(cell, "__iter__") else [cell.iloc[0]]):
+                        try: dates_found.append(pd.Timestamp(v).date())
+                        except Exception: pass
+            matched = [d for d in dates_found if start_d <= d <= end_d]
+            if matched:
+                bulk_hits[sym] = sorted(matched)[0]
         except Exception as exc:
-            errors.append(f"{sym} fallback: {exc}")
+            errors.append(f"{sym}: {exc}")
 
-    # ── 3. Resolve current prices & build rows ────────────────────────────────
+    # ── Resolve prices & build rows ────────────────────────────────────────────
+    rows = []
     for sym, earn_date in bulk_hits.items():
         price = None
         try:
@@ -585,20 +474,13 @@ def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
             price = float(p) if p else None
         except Exception:
             pass
-
-        rows.append({
-            "sym":   sym,
-            "name":  TICKERS.get(sym, sym),
-            "price": price,
-            "date":  earn_date,
-        })
+        rows.append({"sym": sym, "name": TICKERS.get(sym, sym), "price": price, "date": earn_date})
 
     rows.sort(key=lambda r: r["date"])
 
     error_msg = None
     if not rows and errors:
         error_msg = "Could not retrieve earnings data: " + "; ".join(errors[:3])
-
     return rows, error_msg
 
 
@@ -609,35 +491,41 @@ if "last_refresh" not in st.session_state:
     st.session_state.last_refresh = datetime.now()
 if "cache_key" not in st.session_state:
     st.session_state.cache_key = 0
-
-# Week offset for Earnings Calendar (0 = current week, +1 = next, -1 = previous…)
 if "ec_week_offset" not in st.session_state:
     st.session_state.ec_week_offset = 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  SIDEBAR NAVIGATION
+#  SIDEBAR  — uses native Streamlit selectbox (100 % reliable across versions)
 # ══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown("""
-    <div class="nav-logo-row">
-      <div class="nav-logo">📈</div>
-      <span class="nav-brand">MARKET TRACKER</span>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-section-label">Navigation</div>
-    """, unsafe_allow_html=True)
-
-    page = st.radio(
-        label="nav",
-        options=["📊  Stock Dashboard", "📅  Earnings Calendar"],
-        label_visibility="collapsed",
+    st.markdown(
+        "<div style='font-family:IBM Plex Mono,monospace; font-size:1rem; "
+        "font-weight:700; color:#3b9eff; padding: 16px 0 8px 0; "
+        "letter-spacing:0.04em;'>📈 MARKET TRACKER</div>",
+        unsafe_allow_html=True,
     )
-    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-    st.markdown("""
-    <div class="nav-divider"></div>
-    <div class="nav-footer-text">Data via yfinance · US markets</div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        "<div style='height:1px; background:#1e2332; margin-bottom:16px;'></div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── This is the key fix: native selectbox, no CSS overrides on the widget
+    page = st.selectbox(
+        label="Page",
+        options=["📊  Stock Dashboard", "📅  Earnings Calendar"],
+        key="page_selector",
+    )
+
+    st.markdown(
+        "<div style='height:1px; background:#1e2332; margin-top:20px; margin-bottom:10px;'></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<div style='font-family:IBM Plex Mono,monospace; font-size:0.65rem; "
+        "color:#3b9eff; text-align:center;'>Data via yfinance · US markets</div>",
+        unsafe_allow_html=True,
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -669,10 +557,9 @@ if page == "📊  Stock Dashboard":
     st.markdown("<hr>", unsafe_allow_html=True)
 
     tickers_list = list(TICKERS.keys())
-    COLS = 2
-    for row_start in range(0, len(tickers_list), COLS):
-        row_syms = tickers_list[row_start : row_start + COLS]
-        cols = st.columns(COLS, gap="large")
+    for row_start in range(0, len(tickers_list), 2):
+        row_syms = tickers_list[row_start : row_start + 2]
+        cols = st.columns(2, gap="large")
         for col, sym in zip(cols, row_syms):
             with col:
                 try:
@@ -766,8 +653,8 @@ if page == "📊  Stock Dashboard":
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "📅  Earnings Calendar":
 
-    today = date.today()
-    cur_monday = week_monday(today)   # always the true "current week" anchor
+    today      = date.today()
+    cur_monday = week_monday(today)
 
     # ── Header + Refresh ──────────────────────────────────────────────────────
     header_col, btn_col = st.columns([6, 1])
@@ -793,18 +680,14 @@ elif page == "📅  Earnings Calendar":
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # ── Week Navigator (◀ / ▶ arrows) ────────────────────────────────────────
+    # ── Week Navigator ────────────────────────────────────────────────────────
     offset    = st.session_state.ec_week_offset
     wk_monday = cur_monday + timedelta(weeks=offset)
     wk_sunday = week_sunday(wk_monday)
-
     wk_start_str = wk_monday.strftime("%Y-%m-%d")
     wk_end_str   = wk_sunday.strftime("%Y-%m-%d")
-    wk_range_str = (
-        f"{wk_monday.strftime('%b %d, %Y')} – {wk_sunday.strftime('%b %d, %Y')}"
-    )
+    wk_range_str = f"{wk_monday.strftime('%b %d, %Y')} – {wk_sunday.strftime('%b %d, %Y')}"
 
-    # Contextual badge
     if offset == 0:
         ctx_cls, ctx_txt = "current", "Current Week"
     elif offset == 1:
@@ -813,66 +696,60 @@ elif page == "📅  Earnings Calendar":
         ctx_cls, ctx_txt = "other",   "Previous Week"
     else:
         ctx_cls = "other"
-        ctx_txt = f"{'−' if offset < 0 else '+'}{abs(offset)} weeks from now"
+        ctx_txt = f"{'−' if offset < 0 else '+'}{abs(offset)} weeks from today"
 
-    # Three-column layout: ◀ | centre info | ▶
     nav_l, nav_c, nav_r = st.columns([1, 10, 1])
 
     with nav_l:
-        if st.button("◀", key="ec_prev_week", help="Previous week"):
+        if st.button("◀", key="ec_prev", help="Previous week"):
             st.session_state.ec_week_offset -= 1
             st.rerun()
 
     with nav_c:
         st.markdown(f"""
-        <div style="text-align:center; padding: 6px 0;">
-          <div>
-            <span class="ec-nav-context {ctx_cls}">{ctx_txt}</span>
-          </div>
+        <div style="text-align:center; padding:6px 0;">
+          <div><span class="ec-nav-context {ctx_cls}">{ctx_txt}</span></div>
           <div class="ec-nav-week-label">
             {wk_monday.strftime('%A, %b %d')} — {wk_sunday.strftime('%A, %b %d, %Y')}
           </div>
-          <div class="ec-nav-range">Monday → Sunday &nbsp;·&nbsp; Week #{wk_monday.isocalendar()[1]}</div>
+          <div class="ec-nav-range">
+            Monday → Sunday &nbsp;·&nbsp; ISO Week #{wk_monday.isocalendar()[1]}
+          </div>
         </div>""", unsafe_allow_html=True)
 
     with nav_r:
-        if st.button("▶", key="ec_next_week", help="Next week"):
+        if st.button("▶", key="ec_next", help="Next week"):
             st.session_state.ec_week_offset += 1
             st.rerun()
 
-    st.markdown("<div style='margin-bottom:18px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
 
-    # ── "Jump to current week" shortcut when navigated away ──────────────────
     if offset != 0:
         jmp_col, _ = st.columns([2, 6])
         with jmp_col:
-            if st.button("⏎  Jump to Current Week", key="ec_jump_now"):
+            if st.button("⏎  Jump to Current Week", key="ec_jump"):
                 st.session_state.ec_week_offset = 0
                 st.rerun()
 
-    # ── Fetch earnings for the selected week ──────────────────────────────────
+    # ── Fetch ─────────────────────────────────────────────────────────────────
     with st.spinner(f"Fetching earnings for {wk_range_str}…"):
         try:
             week_rows, api_error = fetch_week_earnings(
-                wk_start_str, wk_end_str,
-                st.session_state.cache_key,
+                wk_start_str, wk_end_str, st.session_state.cache_key,
             )
         except Exception as exc:
-            week_rows = []
-            api_error = str(exc)
+            week_rows = []; api_error = str(exc)
 
-    # ── Error state ───────────────────────────────────────────────────────────
+    # ── Error ─────────────────────────────────────────────────────────────────
     if api_error and not week_rows:
         st.markdown(f"""
         <div class="ec-empty" style="border-color:rgba(255,77,106,0.35);">
           <div class="ec-empty-icon">⚠️</div>
-          <div class="ec-empty-title" style="color:#ff8096;">
-            Could not load earnings data
-          </div>
+          <div class="ec-empty-title" style="color:#ff8096;">Could not load earnings data</div>
           <div class="ec-empty-sub">{api_error}</div>
         </div>""", unsafe_allow_html=True)
 
-    # ── Empty state ───────────────────────────────────────────────────────────
+    # ── Empty ─────────────────────────────────────────────────────────────────
     elif not week_rows:
         st.markdown(f"""
         <div class="ec-empty">
@@ -880,21 +757,18 @@ elif page == "📅  Earnings Calendar":
           <div class="ec-empty-title">No earnings scheduled for tracked tickers this week</div>
           <div class="ec-empty-sub">
             None of the {len(TICKERS) - len(NO_EARNINGS)} tracked equities report earnings
-            during<br>{wk_range_str}.<br>
-            Use ◀ ▶ to navigate to another week.
+            during<br>{wk_range_str}.<br>Use ◀ ▶ to navigate to another week.
           </div>
         </div>""", unsafe_allow_html=True)
 
-    # ── Results table ─────────────────────────────────────────────────────────
+    # ── Table ─────────────────────────────────────────────────────────────────
     else:
         n = len(week_rows)
         st.markdown(
-            f'<div class="ec-count-badge">'
-            f'📋 &nbsp;{n} compan{"y" if n == 1 else "ies"} reporting this week'
-            f'</div>',
+            f'<div class="ec-count-badge">📋 &nbsp;'
+            f'{n} compan{"y" if n == 1 else "ies"} reporting this week</div>',
             unsafe_allow_html=True,
         )
-
         rows_html = ""
         for r in week_rows:
             d = r["date"]
@@ -904,20 +778,17 @@ elif page == "📅  Earnings Calendar":
                 pill_cls, day_str = "tomorrow", "TOMORROW"
             else:
                 pill_cls, day_str = "upcoming", d.strftime("%a, %b %d")
-
-            price_str = fmt_price(r.get("price"))
             rows_html += f"""
             <tr>
               <td>
                 <div class="ec-sym">{r['sym']}</div>
                 <div class="ec-name">{r['name']}</div>
               </td>
-              <td class="ec-price">{price_str}</td>
+              <td class="ec-price">{fmt_price(r.get('price'))}</td>
               <td class="ec-date-cell">
                 <span class="ec-date-pill {pill_cls}">{day_str}</span>
               </td>
             </tr>"""
-
         st.markdown(f"""
         <table class="ec-table">
           <thead>
@@ -930,13 +801,9 @@ elif page == "📅  Earnings Calendar":
           <tbody>{rows_html}</tbody>
         </table>""", unsafe_allow_html=True)
 
-    # ── ETF / No-Earnings footer note ─────────────────────────────────────────
     etf_list = ", ".join(sorted(NO_EARNINGS))
     st.markdown(
-        f'<div class="ec-etf-note">'
-        f'ℹ️ &nbsp;ETFs & trusts excluded from earnings tracking: {etf_list}'
-        f'</div>',
+        f'<div class="ec-etf-note">ℹ️ &nbsp;ETFs & trusts excluded: {etf_list}</div>',
         unsafe_allow_html=True,
     )
-
     st.write("")
