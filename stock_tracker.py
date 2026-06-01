@@ -54,30 +54,62 @@ html, body, [class*="css"] {
 section[data-testid="stSidebar"] {
   background: #0d1117 !important;
   border-right: 1px solid #1e2332 !important;
-  min-width: 230px !important;
-  max-width: 230px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
 }
 
-/* Sidebar selectbox — style the native widget cleanly */
-section[data-testid="stSidebar"] .stSelectbox label {
+/* Ensure sidebar text is visible — do NOT use * override */
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] div {
+  color: #c8d0e0;
+}
+
+/* Selectbox label */
+section[data-testid="stSidebar"] label {
   font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 0.7rem !important;
+  font-size: 0.72rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.12em !important;
+  letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
   color: #3b9eff !important;
 }
-section[data-testid="stSidebar"] .stSelectbox > div > div {
+
+/* Selectbox control box */
+section[data-testid="stSidebar"] [data-baseweb="select"] > div:first-child {
   background: #181b24 !important;
-  border: 1px solid #252b3b !important;
+  border: 1px solid #2d3650 !important;
   border-radius: 8px !important;
+}
+/* Selected value text inside the box */
+section[data-testid="stSidebar"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] [data-baseweb="select"] span,
+section[data-testid="stSidebar"] [data-baseweb="select"] div {
   color: #f0f4ff !important;
   font-family: 'IBM Plex Mono', monospace !important;
   font-size: 0.88rem !important;
   font-weight: 600 !important;
 }
-section[data-testid="stSidebar"] .stSelectbox svg {
+/* Dropdown arrow */
+section[data-testid="stSidebar"] [data-baseweb="select"] svg {
   fill: #3b9eff !important;
+}
+/* Dropdown menu panel */
+[data-baseweb="popover"] ul {
+  background: #181b24 !important;
+  border: 1px solid #2d3650 !important;
+  border-radius: 8px !important;
+}
+[data-baseweb="popover"] li {
+  background: #181b24 !important;
+  color: #c8d0e0 !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 0.85rem !important;
+}
+[data-baseweb="popover"] li:hover,
+[data-baseweb="popover"] li[aria-selected="true"] {
+  background: #252b3b !important;
+  color: #f0f4ff !important;
 }
 
 /* ════════════════════════════════════════
@@ -580,12 +612,15 @@ if page == "📊  Stock Dashboard":
                     </div>""", unsafe_allow_html=True)
                     continue
 
-                price   = data["price"]
-                chg     = data["day_change_pct"]
-                is_up   = chg >= 0
-                is_flat = abs(chg) < 0.01
-                badge_cls = "badge-flat" if is_flat else ("badge-up" if is_up else "badge-down")
-                chg_arrow = "" if is_flat else ("▲" if is_up else "▼")
+                price      = data["price"]
+                prev_close = data["prev_close"]
+                chg        = data["day_change_pct"]
+                chg_dollar = (price - prev_close) if (price and prev_close) else 0.0
+                is_up      = chg >= 0
+                is_flat    = abs(chg) < 0.01
+                badge_cls  = "badge-flat" if is_flat else ("badge-up" if is_up else "badge-down")
+                chg_arrow  = "" if is_flat else ("▲" if is_up else "▼")
+                dollar_str = f"${abs(chg_dollar):,.2f}"
 
                 st.markdown(f"""
                 <div class="card">
@@ -599,7 +634,7 @@ if page == "📊  Stock Dashboard":
                   <div class="change-row">
                     <span class="badge {badge_cls}">
                       <span class="badge-label">Day</span>
-                      {chg_arrow} {abs(chg):.2f}%
+                      {chg_arrow} {dollar_str} &nbsp;·&nbsp; {abs(chg):.2f}%
                     </span>
                   </div>
                 </div>""", unsafe_allow_html=True)
