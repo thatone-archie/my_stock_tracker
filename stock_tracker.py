@@ -16,7 +16,7 @@ st.set_page_config(
     page_title="Market Tracker",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Shared CSS ────────────────────────────────────────────────────────────────
@@ -49,75 +49,39 @@ html, body, [class*="css"] {
 }
 
 /* ════════════════════════════════════════
-   SIDEBAR — pastel blue, slidable
+   SIDEBAR — fully hidden
    ════════════════════════════════════════ */
-section[data-testid="stSidebar"] {
-  background: #d6eaf8 !important;
-  border-right: 1px solid #a9cce3 !important;
-  min-width: 240px !important;
-  max-width: 240px !important;
-  transition: transform 0.3s ease, width 0.3s ease !important;
+section[data-testid="stSidebar"],
+button[data-testid="collapsedControl"] {
+  display: none !important;
 }
 
-/* Style the native Streamlit collapse toggle button */
-button[data-testid="collapsedControl"],
-button[aria-label="Close sidebar"],
-button[aria-label="Open sidebar"] {
-  background: #1565a8 !important;
-  border-radius: 0 8px 8px 0 !important;
-  color: #fff !important;
-  border: none !important;
-  box-shadow: 2px 0 8px rgba(21,101,168,0.25) !important;
-  transition: background 0.2s !important;
+/* ════════════════════════════════════════
+   TOP NAV TABS
+   ════════════════════════════════════════ */
+.top-nav {
+  display: flex; align-items: center; gap: 0;
+  background: #d6eaf8; border-radius: 12px;
+  padding: 5px; margin-bottom: 20px;
+  border: 1px solid #a9cce3;
+  width: fit-content;
 }
-button[data-testid="collapsedControl"]:hover,
-button[aria-label="Close sidebar"]:hover,
-button[aria-label="Open sidebar"]:hover {
-  background: #0d47a1 !important;
+.top-nav a {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 600;
+  padding: 8px 22px; border-radius: 8px; cursor: pointer;
+  text-decoration: none; letter-spacing: 0.03em;
+  color: #3a6080; transition: background 0.15s, color 0.15s;
+  border: 1px solid transparent;
 }
-button[data-testid="collapsedControl"] svg,
-button[aria-label="Close sidebar"] svg,
-button[aria-label="Open sidebar"] svg {
-  fill: #fff !important;
-  stroke: #fff !important;
+.top-nav a.active {
+  background: #1565a8; color: #fff;
+  border-color: #0d47a1;
+  box-shadow: 0 2px 8px rgba(21,101,168,0.25);
 }
-
-/* Ensure sidebar text is visible */
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] div {
-  color: #1a3a52;
+.top-nav a:not(.active):hover {
+  background: #c2dcef; color: #1565a8;
 }
 
-/* Selectbox label */
-section[data-testid="stSidebar"] label {
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
-  color: #1565a8 !important;
-}
-
-/* Selectbox control box */
-section[data-testid="stSidebar"] [data-baseweb="select"] > div:first-child {
-  background: #eaf4fc !important;
-  border: 1px solid #7fb3d3 !important;
-  border-radius: 8px !important;
-}
-/* Selected value text inside the box */
-section[data-testid="stSidebar"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] p,
-section[data-testid="stSidebar"] [data-baseweb="select"] span,
-section[data-testid="stSidebar"] [data-baseweb="select"] div {
-  color: #1a3a52 !important;
-  font-family: 'IBM Plex Mono', monospace !important;
-  font-size: 0.88rem !important;
-  font-weight: 600 !important;
-}
-/* Dropdown arrow */
-section[data-testid="stSidebar"] [data-baseweb="select"] svg {
-  fill: #1565a8 !important;
-}
 /* Dropdown menu panel */
 [data-baseweb="popover"] ul {
   background: #eaf4fc !important;
@@ -203,15 +167,19 @@ section[data-testid="stSidebar"] [data-baseweb="select"] svg {
   display: flex; gap: 0; margin-top: 10px;
   padding-top: 10px; border-top: 1px solid #a9cce3;
 }
-.metric-block { flex: 1; padding-right: 12px; }
-.metric-block + .metric-block { padding-left: 12px; border-left: 1px solid #a9cce3; }
+.metric-block { flex: 1; padding-right: 8px; }
+.metric-block + .metric-block { padding-left: 8px; border-left: 1px solid #a9cce3; }
 .metric-label {
-  font-size: 0.6rem; font-weight: 700; color: #5a7a90;
+  font-size: 0.55rem; font-weight: 700; color: #5a7a90;
   text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 3px;
 }
 .metric-value {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.88rem;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
   font-weight: 600; color: #1565a8;
+}
+.metric-value-sm {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+  font-weight: 600; color: #1565a8; line-height: 1.3;
 }
 
 .error-card {
@@ -442,19 +410,32 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
                     ed = cal.get("Earnings Date")
                     if ed:
                         val = ed[0] if isinstance(ed, (list, tuple)) else ed
-                        earnings_date = str(val)[:10]
+                        earnings_date = pd.Timestamp(str(val)[:10]).strftime("%b-%d-%Y")
                 elif isinstance(cal, pd.DataFrame) and not cal.empty:
                     if "Earnings Date" in cal.index:
                         val = cal.loc["Earnings Date"].iloc[0]
-                        earnings_date = str(val)[:10]
+                        earnings_date = pd.Timestamp(str(val)[:10]).strftime("%b-%d-%Y")
         except Exception:
             earnings_date = "Unavailable"
+
+    # 52-week range
+    week52_low  = info.get("fiftyTwoWeekLow")
+    week52_high = info.get("fiftyTwoWeekHigh")
+    if week52_low and week52_high:
+        week52_range = f"${float(week52_low):,.2f} – ${float(week52_high):,.2f}"
+    else:
+        week52_range = "—"
+
+    # Price target (analyst mean target)
+    target_raw = info.get("targetMeanPrice") or info.get("targetMedianPrice")
+    price_target = f"${float(target_raw):,.2f}" if target_raw else "—"
 
     return {
         "chart_df": chart_df, "price": current_price,
         "prev_close": prev_close, "day_change_pct": day_change_pct,
         "ah_price": ah_price, "ah_change_pct": ah_change_pct,
         "volume": volume, "earnings": earnings_date,
+        "week52_range": week52_range, "price_target": price_target,
     }
 
 
@@ -565,36 +546,20 @@ if "ec_week_offset" not in st.session_state:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  SIDEBAR  — uses native Streamlit selectbox (100 % reliable across versions)
+#  TOP NAV — replaces sidebar; uses query param for page state
 # ══════════════════════════════════════════════════════════════════════════════
-with st.sidebar:
-    st.markdown(
-        "<div style='font-family:IBM Plex Mono,monospace; font-size:1rem; "
-        "font-weight:700; color:#1565a8; padding: 16px 0 8px 0; "
-        "letter-spacing:0.04em;'>📈 MARKET TRACKER</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        "<div style='height:1px; background:#7fb3d3; margin-bottom:16px;'></div>",
-        unsafe_allow_html=True,
-    )
+_qp   = st.query_params.get("page", "dashboard")
+page  = "📅  Earnings Calendar" if _qp == "earnings" else "📊  Stock Dashboard"
 
-    # ── This is the key fix: native selectbox, no CSS overrides on the widget
-    page = st.selectbox(
-        label="Page",
-        options=["📊  Stock Dashboard", "📅  Earnings Calendar"],
-        key="page_selector",
-    )
+_dash_cls     = "active" if page == "📊  Stock Dashboard"   else ""
+_earn_cls     = "active" if page == "📅  Earnings Calendar" else ""
 
-    st.markdown(
-        "<div style='height:1px; background:#7fb3d3; margin-top:20px; margin-bottom:10px;'></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        "<div style='font-family:IBM Plex Mono,monospace; font-size:0.65rem; "
-        "color:#1565a8; text-align:center;'>Data via yfinance · US markets</div>",
-        unsafe_allow_html=True,
-    )
+st.markdown(f"""
+<div class="top-nav">
+  <a href="?page=dashboard" class="{_dash_cls}">📊&nbsp; Stock Dashboard</a>
+  <a href="?page=earnings"  class="{_earn_cls}">📅&nbsp; Earnings Calendar</a>
+</div>
+""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -704,16 +669,26 @@ if page == "📊  Stock Dashboard":
                         key=f"chart_{sym}_{st.session_state.cache_key}",
                     )
 
-                earnings_label = "Not Applicable" if sym in ETF_TICKERS else data["earnings"]
+                earnings_label = "N/A" if sym in ETF_TICKERS else data["earnings"]
+                week52         = data["week52_range"]
+                price_tgt      = "N/A" if sym in ETF_TICKERS else data["price_target"]
                 st.markdown(f"""
                 <div class="metrics-row">
                   <div class="metric-block">
-                    <div class="metric-label">Daily Volume</div>
+                    <div class="metric-label">Volume</div>
                     <div class="metric-value">{fmt_volume(data['volume'])}</div>
                   </div>
                   <div class="metric-block">
                     <div class="metric-label">Next Earnings</div>
                     <div class="metric-value">{earnings_label}</div>
+                  </div>
+                  <div class="metric-block">
+                    <div class="metric-label">52W Range</div>
+                    <div class="metric-value metric-value-sm">{week52}</div>
+                  </div>
+                  <div class="metric-block">
+                    <div class="metric-label">Price Target</div>
+                    <div class="metric-value">{price_tgt}</div>
                   </div>
                 </div>""", unsafe_allow_html=True)
 
