@@ -137,7 +137,7 @@ button[data-testid="collapsedControl"] {
 }
 .change-row  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .badge {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.89rem; font-weight: 600;
   padding: 3px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;
 }
 .badge-label {
