@@ -129,7 +129,7 @@ button[data-testid="collapsedControl"] {
 }
 .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
 .card-ticker { font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; font-weight: 700; color: #1565a8; letter-spacing: 0.04em; }
-.card-name   { font-size: 0.98rem; color: #3a6080; margin-top: 2px; font-weight: 400; }
+.card-name   { font-size: 0.78rem; color: #3a6080; margin-top: 2px; font-weight: 400; }
 .price-main  {
   font-family: 'IBM Plex Mono', monospace; font-size: 1.45rem;
   font-weight: 700; color: #0d2b3e; line-height: 1;
@@ -548,7 +548,7 @@ def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
 #  SESSION STATE
 # ══════════════════════════════════════════════════════════════════════════════
 if "last_refresh" not in st.session_state:
-    st.session_state.last_refresh = datetime.now()
+    st.session_state.last_refresh = datetime.now(pytz.timezone("America/Los_Angeles"))
 if "cache_key" not in st.session_state:
     st.session_state.cache_key = 0
 if "ec_week_offset" not in st.session_state:
@@ -582,11 +582,11 @@ if page == "📊  Stock Dashboard":
         st.markdown("""
         <div class="dash-header">
           <span class="dash-title">STOCK DASHBOARD</span>
-          <span class="dash-pill">Live · 12 Assets · ET</span>
+          <span class="dash-pill">Live · 10 Assets · PST</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
-            f'{st.session_state.last_refresh.strftime("%b %d, %Y  %H:%M:%S")}</div>',
+            f'{st.session_state.last_refresh.strftime("%b %d, %Y  %H:%M:%S PST")}</div>',
             unsafe_allow_html=True,
         )
     with btn_col:
@@ -594,7 +594,7 @@ if page == "📊  Stock Dashboard":
         if st.button("⟳  Refresh Data", key="dash_refresh"):
             fetch_ticker_data.clear()
             fetch_week_earnings.clear()
-            st.session_state.last_refresh = datetime.now()
+            st.session_state.last_refresh = datetime.now(pytz.timezone("America/Los_Angeles"))
             st.session_state.cache_key += 1
             st.rerun()
 
@@ -735,7 +735,7 @@ elif page == "📅  Earnings Calendar":
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
-            f'{st.session_state.last_refresh.strftime("%b %d, %Y  %H:%M:%S")}</div>',
+            f'{st.session_state.last_refresh.strftime("%b %d, %Y  %H:%M:%S PST")}</div>',
             unsafe_allow_html=True,
         )
     with btn_col:
@@ -743,7 +743,7 @@ elif page == "📅  Earnings Calendar":
         if st.button("⟳  Refresh Data", key="ec_refresh"):
             fetch_ticker_data.clear()
             fetch_week_earnings.clear()
-            st.session_state.last_refresh = datetime.now()
+            st.session_state.last_refresh = datetime.now(pytz.timezone("America/Los_Angeles"))
             st.session_state.cache_key   += 1
             st.rerun()
 
