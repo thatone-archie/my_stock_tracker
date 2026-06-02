@@ -582,7 +582,7 @@ if page == "📊  Stock Dashboard":
         st.markdown("""
         <div class="dash-header">
           <span class="dash-title">STOCK DASHBOARD</span>
-          <span class="dash-pill">Live · 10 Assets · PST</span>
+          <span class="dash-pill">Live · 12 Assets · PST</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
