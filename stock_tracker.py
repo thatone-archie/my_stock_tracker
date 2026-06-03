@@ -332,7 +332,7 @@ def fmt_price(p) -> str:
     return f"${float(p):,.2f}"
 
 PST = pytz.timezone("America/Los_Angeles")
-_CHART_START_HOUR = 6   # 6:00 AM PST
+_CHART_START_HOUR = 6   # 6:30 AM PST
 _CHART_END_HOUR   = 13  # 1:00 PM PST
 
 def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
@@ -445,7 +445,7 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
 def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
     """
     Fetches 1D intraday data at 15-min intervals for the chart.
-    Converts to PST/PDT and clips to 06:00–17:00 using between_time().
+    Converts to PST/PDT and clips to 06:30–13:00 using between_time().
     Returns a clean DataFrame or None on any failure.
     """
     try:
@@ -462,8 +462,8 @@ def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
         df = raw.copy()
         df.index = df.index.tz_convert(PST)
 
-        # Clip to 06:00–17:00 PST (inclusive start, exclusive end matches market hours)
-        df = df.between_time("06:00", "13:00")
+        # Clip to 06:30–13:00 PST (inclusive start, exclusive end matches market hours)
+        df = df.between_time("06:30", "13:00")
 
         # Drop NaN / Inf close prices
         df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
