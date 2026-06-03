@@ -444,12 +444,12 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
 @st.cache_data(ttl=0, show_spinner=False)
 def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
     """
-    Fetches 1D intraday data at 15-min intervals for the chart.
+    Fetches 1D intraday data at 5-min intervals for the chart.
     Converts to PST/PDT and clips to 06:30–13:00 using between_time().
     Returns a clean DataFrame or None on any failure.
     """
     try:
-        raw = yf.Ticker(symbol).history(period="1d", interval="15m",
+        raw = yf.Ticker(symbol).history(period="1d", interval="5m",
                                         auto_adjust=True, prepost=False)
         if raw is None or raw.empty or "Close" not in raw.columns:
             return None
