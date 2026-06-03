@@ -420,40 +420,70 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data(ttl=0, show_spinner=False)
+def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
+    """
+    Fetches 1D intraday data at 20-min intervals for the chart.
+    Converts to PST/PDT and clips to 06:00–17:00 using between_time().
+    Returns a clean DataFrame or None on any failure.
+    """
+    try:
+        raw = yf.Ticker(symbol).history(period="1d", interval="20m",
+                                        auto_adjust=True, prepost=False)
+        if raw is None or raw.empty or "Close" not in raw.columns:
+            return None
+
+        # Ensure timezone-aware index
+        if raw.index.tz is None:
+            raw.index = raw.index.tz_localize("UTC")
+
+        # Convert to PST/PDT
+        df = raw.copy()
+        df.index = df.index.tz_convert(PST)
+
+        # Clip to 06:00–17:00 PST (inclusive start, exclusive end matches market hours)
+        df = df.between_time("06:00", "17:00")
+
+        # Drop NaN / Inf close prices
+        df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
+        df = df[df["Close"].notna() & df["Close"].apply(lambda x: not (x in (float("inf"), float("-inf"))))]
+
+        return df if not df.empty else None
+
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=0, show_spinner=False)
 def fetch_ticker_data(symbol: str, _cache_key: int):
     ticker = yf.Ticker(symbol)
-    hist = ticker.history(period="2d", interval="1h", auto_adjust=True, prepost=False)
-    if hist.empty:
-        raise ValueError(f"No intraday data returned for {symbol}.")
 
-    today_et = datetime.now(ET).date()
-    if hist.index.tz is None:
-        hist.index = hist.index.tz_localize("UTC")
-    hist_et = hist.copy()
-    hist_et.index = hist_et.index.tz_convert(ET)
-    today_bars = hist_et[hist_et.index.date == today_et]
-    if today_bars.empty:
-        latest_date = hist_et.index.date[-1]
-        today_bars = hist_et[hist_et.index.date == latest_date]
-    chart_df = today_bars if not today_bars.empty else hist_et
+    # ── Chart data: dedicated 20-min / 1D pull ────────────────────────────────
+    chart_df = fetch_chart_data(symbol, _cache_key)
 
+    # ── Price / metadata: use fast info + fallback to chart_df ────────────────
     info = {}
     try:
         info = ticker.info or {}
     except Exception:
         pass
 
-    current_price = (
-        info.get("currentPrice") or info.get("regularMarketPrice")
-        or float(chart_df["Close"].iloc[-1])
-    )
+    # Derive current price
+    current_price = info.get("currentPrice") or info.get("regularMarketPrice")
+    if current_price is None and chart_df is not None and not chart_df.empty:
+        current_price = float(chart_df["Close"].iloc[-1])
+    if current_price is None:
+        raise ValueError(f"No price data available for {symbol}.")
+    current_price = float(current_price)
     prev_close = info.get("previousClose") or info.get("regularMarketPreviousClose")
-    if prev_close is None and not chart_df.empty:
+    if prev_close is None and chart_df is not None and not chart_df.empty:
         prev_close = float(chart_df["Open"].iloc[0])
-    day_change_pct = (
-        (current_price - prev_close) / prev_close * 100
-        if prev_close and prev_close != 0 else 0.0
-    )
+    try:
+        day_change_pct = (
+            (current_price - float(prev_close)) / float(prev_close) * 100
+            if prev_close and float(prev_close) != 0 else 0.0
+        )
+    except Exception:
+        day_change_pct = 0.0
 
     ah_price = None; ah_change_pct = None
     try:
@@ -465,7 +495,7 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
         ah_price = None
 
     volume = info.get("regularMarketVolume") or info.get("volume")
-    if volume is None and "Volume" in chart_df.columns:
+    if volume is None and chart_df is not None and "Volume" in chart_df.columns:
         volume = int(chart_df["Volume"].sum())
 
     earnings_date = "N/A"
