@@ -427,7 +427,7 @@ def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
     Returns a clean DataFrame or None on any failure.
     """
     try:
-        raw = yf.Ticker(symbol).history(period="1d", interval="20m",
+        raw = yf.Ticker(symbol).history(period="1d", interval="15m",
                                         auto_adjust=True, prepost=False)
         if raw is None or raw.empty or "Close" not in raw.columns:
             return None
