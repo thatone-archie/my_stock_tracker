@@ -331,31 +331,88 @@ def fmt_price(p) -> str:
     if p is None: return "—"
     return f"${float(p):,.2f}"
 
-def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure:
-    color = CHART_UP_LINE if is_up else CHART_DOWN_LINE
-    fill  = CHART_UP_FILL if is_up else CHART_DOWN_FILL
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df.index, y=df["Close"], mode="lines",
-        line=dict(color=color, width=2.0),
-        fill="tozeroy", fillcolor=fill,
-        hovertemplate="<b>%{x|%H:%M}</b>  $%{y:,.2f}<extra></extra>",
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(234,244,252,0)",
-        margin=dict(l=0, r=4, t=4, b=0), height=130,
-        xaxis=dict(showgrid=False, zeroline=False, showline=False,
-                   tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
-                   tickformat="%H:%M", nticks=5),
-        yaxis=dict(showgrid=True, zeroline=False, gridcolor="rgba(90,120,144,0.15)",
-                   tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
-                   showline=False, tickprefix="$", side="right"),
-        hovermode="x unified",
-        hoverlabel=dict(bgcolor="#ddeef8", bordercolor="#a9cce3",
-                        font=dict(family="IBM Plex Mono", size=10, color="#0d2b3e")),
-        showlegend=False,
-    )
-    return fig
+PST = pytz.timezone("America/Los_Angeles")
+_CHART_START_HOUR = 6   # 6:00 AM PST
+_CHART_END_HOUR   = 17  # 5:00 PM PST
+
+def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
+    """
+    Renders a line chart clipped to 6:00 AM – 5:00 PM PST.
+    Returns None (caller shows placeholder) when data is missing or all-NaN.
+    """
+    try:
+        if df is None or df.empty or "Close" not in df.columns:
+            return None
+
+        # ── Convert index to PST ───────────────────────────────────────────────
+        plot_df = df.copy()
+        if plot_df.index.tz is None:
+            plot_df.index = plot_df.index.tz_localize("UTC")
+        plot_df.index = plot_df.index.tz_convert(PST)
+
+        # ── Clip to 6:00 AM – 5:00 PM PST ────────────────────────────────────
+        plot_df = plot_df[
+            (plot_df.index.hour >= _CHART_START_HOUR) &
+            (plot_df.index.hour <  _CHART_END_HOUR)
+        ]
+
+        # ── Drop NaN / Inf close prices ───────────────────────────────────────
+        plot_df = plot_df[pd.to_numeric(plot_df["Close"], errors="coerce").notna()]
+        plot_df = plot_df[plot_df["Close"].replace([float("inf"), float("-inf")], pd.NA).notna()]
+
+        if plot_df.empty or plot_df["Close"].dropna().empty:
+            return None
+
+        # ── Build x-axis range anchored to the trading window ─────────────────
+        ref_date  = plot_df.index[0].date()
+        x_start   = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day,
+                                          _CHART_START_HOUR, 0, 0))
+        x_end     = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day,
+                                          _CHART_END_HOUR,   0, 0))
+
+        color = CHART_UP_LINE if is_up else CHART_DOWN_LINE
+        fill  = CHART_UP_FILL if is_up else CHART_DOWN_FILL
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=plot_df.index,
+            y=plot_df["Close"],
+            mode="lines",
+            line=dict(color=color, width=2.0),
+            fill="tozeroy",
+            fillcolor=fill,
+            hovertemplate="<b>%{x|%H:%M PST}</b>  $%{y:,.2f}<extra></extra>",
+            connectgaps=False,   # show gaps honestly — don't bridge missing bars
+        ))
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(234,244,252,0)",
+            margin=dict(l=0, r=4, t=4, b=0),
+            height=130,
+            xaxis=dict(
+                range=[x_start, x_end],
+                showgrid=False, zeroline=False, showline=False,
+                tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
+                tickformat="%H:%M",
+                nticks=6,
+            ),
+            yaxis=dict(
+                showgrid=True, zeroline=False,
+                gridcolor="rgba(90,120,144,0.15)",
+                tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
+                showline=False, tickprefix="$", side="right",
+            ),
+            hovermode="x unified",
+            hoverlabel=dict(
+                bgcolor="#ddeef8", bordercolor="#a9cce3",
+                font=dict(family="IBM Plex Mono", size=10, color="#0d2b3e"),
+            ),
+            showlegend=False,
+        )
+        return fig
+
+    except Exception:
+        return None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -669,11 +726,21 @@ if page == "📊  Stock Dashboard":
                     </div>""", unsafe_allow_html=True)
 
                 chart_df = data["chart_df"]
-                if chart_df is None or chart_df.empty:
-                    st.caption("No intraday data available.")
+                fig = make_chart(chart_df, is_up) if (chart_df is not None and not chart_df.empty) else None
+                if fig is None:
+                    st.markdown("""
+                    <div style="height:130px; display:flex; flex-direction:column;
+                                align-items:center; justify-content:center;
+                                background:rgba(90,120,144,0.07);
+                                border:1px dashed #a9cce3; border-radius:10px;
+                                margin:6px 0;">
+                      <span style="font-size:1.1rem; margin-bottom:4px;">📊</span>
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem;
+                                   color:#5a7a90;">Chart data unavailable</span>
+                    </div>""", unsafe_allow_html=True)
                 else:
                     st.plotly_chart(
-                        make_chart(chart_df, is_up),
+                        fig,
                         use_container_width=True,
                         config={"displayModeBar": False},
                         key=f"chart_{sym}_{st.session_state.cache_key}",
