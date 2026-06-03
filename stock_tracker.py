@@ -444,9 +444,9 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
 @st.cache_data(ttl=0, show_spinner=False)
 def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
     """
-    Fetches 1D intraday data at 20-min intervals for the chart.
-    Converts to PST/PDT and clips to 06:00–17:00 using between_time().
-    Returns a clean DataFrame or None on any failure.
+    Fetches 1D intraday data at 15-min intervals for the chart, including
+    pre/post-market bars (prepost=True). Converts to PST/PDT and clips to
+    06:00–17:00 using between_time(). Returns a clean DataFrame or None on any failure.
     """
     try:
         raw = yf.Ticker(symbol).history(period="1d", interval="15m",
@@ -462,7 +462,7 @@ def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
         df = raw.copy()
         df.index = df.index.tz_convert(PST)
 
-        # Clip to 06:00–17:00 PST (inclusive start, exclusive end matches market hours)
+        # Clip to 06:00–17:00 PST — unchanged per requirements
         df = df.between_time("06:00", "17:00")
 
         # Drop NaN / Inf close prices
@@ -479,7 +479,7 @@ def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
 def fetch_ticker_data(symbol: str, _cache_key: int):
     ticker = yf.Ticker(symbol)
 
-    # ── Chart data: dedicated 20-min / 1D pull ────────────────────────────────
+    # ── Chart data: dedicated 15-min / 1D pull (prepost=True for after-hours) ──
     chart_df = fetch_chart_data(symbol, _cache_key)
 
     # ── Price / metadata: use fast info + fallback to chart_df ────────────────
