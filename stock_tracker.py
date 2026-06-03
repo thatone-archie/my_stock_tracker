@@ -363,6 +363,18 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
         if plot_df.empty or plot_df["Close"].dropna().empty:
             return None
 
+        # ── Y-axis bounds: day low − 10%  /  day high + 20% ──────────────────
+        # Use Low/High columns when available, otherwise fall back to Close range
+        if "Low" in plot_df.columns and "High" in plot_df.columns:
+            day_low  = float(pd.to_numeric(plot_df["Low"],  errors="coerce").min())
+            day_high = float(pd.to_numeric(plot_df["High"], errors="coerce").max())
+        else:
+            day_low  = float(plot_df["Close"].min())
+            day_high = float(plot_df["Close"].max())
+
+        y_min = day_low  * 0.90   # −10 %
+        y_max = day_high * 1.20   # +20 %
+
         # ── Build x-axis range anchored to the trading window ─────────────────
         ref_date  = plot_df.index[0].date()
         x_start   = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day,
@@ -374,15 +386,24 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
         fill  = CHART_UP_FILL if is_up else CHART_DOWN_FILL
 
         fig = go.Figure()
+        # Invisible baseline at y_min so the area fill starts there, not at zero
+        fig.add_trace(go.Scatter(
+            x=plot_df.index,
+            y=[y_min] * len(plot_df),
+            mode="lines",
+            line=dict(width=0, color="rgba(0,0,0,0)"),
+            showlegend=False,
+            hoverinfo="skip",
+        ))
         fig.add_trace(go.Scatter(
             x=plot_df.index,
             y=plot_df["Close"],
             mode="lines",
             line=dict(color=color, width=2.0),
-            fill="tozeroy",
+            fill="tonexty",
             fillcolor=fill,
             hovertemplate="<b>%{x|%H:%M PST}</b>  $%{y:,.2f}<extra></extra>",
-            connectgaps=False,   # show gaps honestly — don't bridge missing bars
+            connectgaps=False,
         ))
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
@@ -397,6 +418,7 @@ def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
                 nticks=6,
             ),
             yaxis=dict(
+                range=[y_min, y_max],
                 showgrid=True, zeroline=False,
                 gridcolor="rgba(90,120,144,0.15)",
                 tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
