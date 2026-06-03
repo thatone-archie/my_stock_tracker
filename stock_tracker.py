@@ -337,121 +337,150 @@ _CHART_END_HOUR   = 17  # 5:00 PM PST
 
 def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
     """
-    Renders a Plotly line chart from an already PST-clipped, cleaned DataFrame.
-    Returns None only if the df is empty or Close is all-NaN.
+    Renders a line chart clipped to 6:00 AM – 5:00 PM PST.
+    Returns None (caller shows placeholder) when data is missing or all-NaN.
     """
-    if df is None or df.empty or "Close" not in df.columns:
+    try:
+        if df is None or df.empty or "Close" not in df.columns:
+            return None
+
+        # ── Convert index to PST ───────────────────────────────────────────────
+        plot_df = df.copy()
+        if plot_df.index.tz is None:
+            plot_df.index = plot_df.index.tz_localize("UTC")
+        plot_df.index = plot_df.index.tz_convert(PST)
+
+        # ── Clip to 6:00 AM – 5:00 PM PST ────────────────────────────────────
+        plot_df = plot_df[
+            (plot_df.index.hour >= _CHART_START_HOUR) &
+            (plot_df.index.hour <  _CHART_END_HOUR)
+        ]
+
+        # ── Drop NaN / Inf close prices ───────────────────────────────────────
+        plot_df = plot_df[pd.to_numeric(plot_df["Close"], errors="coerce").notna()]
+        plot_df = plot_df[plot_df["Close"].replace([float("inf"), float("-inf")], pd.NA).notna()]
+
+        if plot_df.empty or plot_df["Close"].dropna().empty:
+            return None
+
+        # ── Y-axis bounds: day low − 10%  /  day high + 10% ──────────────────
+        # Use Low/High columns when available, otherwise fall back to Close range
+        if "Low" in plot_df.columns and "High" in plot_df.columns:
+            day_low  = float(pd.to_numeric(plot_df["Low"],  errors="coerce").min())
+            day_high = float(pd.to_numeric(plot_df["High"], errors="coerce").max())
+        else:
+            day_low  = float(plot_df["Close"].min())
+            day_high = float(plot_df["Close"].max())
+
+        y_min = day_low  * 0.90   # −10 %
+        y_max = day_high * 1.10   # +10 %
+
+        # ── Build x-axis range anchored to the trading window ─────────────────
+        ref_date  = plot_df.index[0].date()
+        x_start   = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day,
+                                          _CHART_START_HOUR, 0, 0))
+        x_end     = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day,
+                                          _CHART_END_HOUR,   0, 0))
+
+        color = CHART_UP_LINE if is_up else CHART_DOWN_LINE
+        fill  = CHART_UP_FILL if is_up else CHART_DOWN_FILL
+
+        fig = go.Figure()
+        # Invisible baseline at y_min so the area fill starts there, not at zero
+        fig.add_trace(go.Scatter(
+            x=plot_df.index,
+            y=[y_min] * len(plot_df),
+            mode="lines",
+            line=dict(width=0, color="rgba(0,0,0,0)"),
+            showlegend=False,
+            hoverinfo="skip",
+        ))
+        fig.add_trace(go.Scatter(
+            x=plot_df.index,
+            y=plot_df["Close"],
+            mode="lines",
+            line=dict(color=color, width=2.0),
+            fill="tonexty",
+            fillcolor=fill,
+            hovertemplate="<b>%{x|%H:%M PST}</b>  $%{y:,.2f}<extra></extra>",
+            connectgaps=False,
+        ))
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(234,244,252,0)",
+            margin=dict(l=0, r=4, t=4, b=0),
+            height=130,
+            xaxis=dict(
+                range=[x_start, x_end],
+                showgrid=False, zeroline=False, showline=False,
+                tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
+                tickformat="%H:%M",
+                nticks=6,
+            ),
+            yaxis=dict(
+                range=[y_min, y_max],
+                showgrid=True, zeroline=False,
+                gridcolor="rgba(90,120,144,0.15)",
+                tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
+                showline=False, tickprefix="$", side="right",
+            ),
+            hovermode="x unified",
+            hoverlabel=dict(
+                bgcolor="#ddeef8", bordercolor="#a9cce3",
+                font=dict(family="IBM Plex Mono", size=10, color="#0d2b3e"),
+            ),
+            showlegend=False,
+        )
+        return fig
+
+    except Exception:
         return None
-    if df["Close"].dropna().empty:
-        return None
 
-    # ── Y-axis bounds: day low − 10%  /  day high + 20% ──────────────────────
-    if "Low" in df.columns and "High" in df.columns:
-        day_low  = float(pd.to_numeric(df["Low"],  errors="coerce").min())
-        day_high = float(pd.to_numeric(df["High"], errors="coerce").max())
-    else:
-        day_low  = float(df["Close"].min())
-        day_high = float(df["Close"].max())
-
-    # Guard against bad Low/High values (e.g. pre-market bars with 0s)
-    if not (day_low > 0 and day_high > 0 and day_high >= day_low):
-        day_low  = float(df["Close"].min())
-        day_high = float(df["Close"].max())
-
-    y_min = day_low  * 0.90
-    y_max = day_high * 1.20
-
-    # ── X-axis: anchor to 06:00–17:00 on the date of the first bar ───────────
-    ref_date = df.index[0].date()
-    x_start  = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day, 6,  0, 0))
-    x_end    = PST.localize(datetime(ref_date.year, ref_date.month, ref_date.day, 17, 0, 0))
-
-    color = CHART_UP_LINE if is_up else CHART_DOWN_LINE
-    fill  = CHART_UP_FILL if is_up else CHART_DOWN_FILL
-
-    fig = go.Figure()
-    # Invisible baseline at y_min so fill area doesn't drop to zero
-    fig.add_trace(go.Scatter(
-        x=df.index, y=[y_min] * len(df),
-        mode="lines", line=dict(width=0, color="rgba(0,0,0,0)"),
-        showlegend=False, hoverinfo="skip",
-    ))
-    fig.add_trace(go.Scatter(
-        x=df.index, y=df["Close"],
-        mode="lines",
-        line=dict(color=color, width=2.0),
-        fill="tonexty", fillcolor=fill,
-        hovertemplate="<b>%{x|%H:%M PST}</b>  $%{y:,.2f}<extra></extra>",
-        connectgaps=False,
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(234,244,252,0)",
-        margin=dict(l=0, r=4, t=4, b=0),
-        height=130,
-        xaxis=dict(
-            range=[x_start, x_end],
-            showgrid=False, zeroline=False, showline=False,
-            tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
-            tickformat="%H:%M", nticks=6,
-        ),
-        yaxis=dict(
-            range=[y_min, y_max],
-            showgrid=True, zeroline=False,
-            gridcolor="rgba(90,120,144,0.15)",
-            tickfont=dict(family="IBM Plex Mono", size=8, color="#5a7a90"),
-            showline=False, tickprefix="$", side="right",
-        ),
-        hovermode="x unified",
-        hoverlabel=dict(
-            bgcolor="#ddeef8", bordercolor="#a9cce3",
-            font=dict(family="IBM Plex Mono", size=10, color="#0d2b3e"),
-        ),
-        showlegend=False,
-    )
-    return fig
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  DATA FETCHERS
-# ══════════════════════════════════════════════════════════════════════════════
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  DATA FETCHERS
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data(ttl=0, show_spinner=False)
+def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
+    """
+    Fetches 1D intraday data at 15-min intervals for the chart.
+    Converts to PST/PDT and clips to 06:00–17:00 using between_time().
+    Returns a clean DataFrame or None on any failure.
+    """
+    try:
+        raw = yf.Ticker(symbol).history(period="1d", interval="15m",
+                                        auto_adjust=True, prepost=False)
+        if raw is None or raw.empty or "Close" not in raw.columns:
+            return None
+
+        # Ensure timezone-aware index
+        if raw.index.tz is None:
+            raw.index = raw.index.tz_localize("UTC")
+
+        # Convert to PST/PDT
+        df = raw.copy()
+        df.index = df.index.tz_convert(PST)
+
+        # Clip to 06:00–17:00 PST (inclusive start, exclusive end matches market hours)
+        df = df.between_time("06:00", "13:00")
+
+        # Drop NaN / Inf close prices
+        df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
+        df = df[df["Close"].notna() & df["Close"].apply(lambda x: not (x in (float("inf"), float("-inf"))))]
+
+        return df if not df.empty else None
+
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=0, show_spinner=False)
 def fetch_ticker_data(symbol: str, _cache_key: int):
     ticker = yf.Ticker(symbol)
 
-    # ── Chart data: 15-min / 1D, prepost=True for pre+after-hours bars ────────
-    chart_df      = None
-    chart_err     = None
-    try:
-        raw = ticker.history(period="1d", interval="15m",
-                             auto_adjust=True, prepost=True)
-        if raw is None or raw.empty or "Close" not in raw.columns:
-            chart_err = "history() returned no data"
-        else:
-            # Ensure tz-aware index
-            if raw.index.tz is None:
-                raw.index = raw.index.tz_localize("UTC")
-            raw.index = raw.index.tz_convert(PST)
-
-            # Clip to 06:00–17:00 PST
-            raw = raw.between_time("06:00", "17:00")
-
-            # Clean Close column
-            raw["Close"] = pd.to_numeric(raw["Close"], errors="coerce")
-            raw = raw[raw["Close"].notna()]
-            raw = raw[~raw["Close"].isin([float("inf"), float("-inf")])]
-
-            if raw.empty:
-                chart_err = "No bars in 06:00–17:00 PST window after cleaning"
-            else:
-                chart_df = raw
-    except Exception as exc:
-        chart_err = str(exc)
+    # ── Chart data: dedicated 20-min / 1D pull ────────────────────────────────
+    chart_df = fetch_chart_data(symbol, _cache_key)
 
     # ── Price / metadata: use fast info + fallback to chart_df ────────────────
     info = {}
@@ -521,8 +550,7 @@ def fetch_ticker_data(symbol: str, _cache_key: int):
     price_target = f"${float(target_raw):,.2f}" if target_raw else "—"
 
     return {
-        "chart_df": chart_df, "chart_err": chart_err,
-        "price": current_price,
+        "chart_df": chart_df, "price": current_price,
         "prev_close": prev_close, "day_change_pct": day_change_pct,
         "ah_price": ah_price, "ah_change_pct": ah_change_pct,
         "volume": volume, "earnings": earnings_date,
@@ -749,22 +777,18 @@ if page == "📊  Stock Dashboard":
                       <span class="ah-na">Not available outside trading hours</span>
                     </div>""", unsafe_allow_html=True)
 
-                chart_df  = data["chart_df"]
-                chart_err = data.get("chart_err")
-                fig = make_chart(chart_df, is_up) if chart_df is not None else None
+                chart_df = data["chart_df"]
+                fig = make_chart(chart_df, is_up) if (chart_df is not None and not chart_df.empty) else None
                 if fig is None:
-                    err_detail = chart_err or "No bars in trading window"
-                    st.markdown(f"""
-                    <div style="height:90px; display:flex; flex-direction:column;
+                    st.markdown("""
+                    <div style="height:130px; display:flex; flex-direction:column;
                                 align-items:center; justify-content:center;
                                 background:rgba(90,120,144,0.07);
                                 border:1px dashed #a9cce3; border-radius:10px;
-                                margin:6px 0; padding: 0 8px; text-align:center;">
-                      <span style="font-size:1rem; margin-bottom:4px;">📊</span>
-                      <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem;
-                                   color:#5a7a90;">Chart unavailable</span>
-                      <span style="font-family:'IBM Plex Mono',monospace; font-size:0.58rem;
-                                   color:#8aabb0; margin-top:2px;">{err_detail}</span>
+                                margin:6px 0;">
+                      <span style="font-size:1.1rem; margin-bottom:4px;">📊</span>
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem;
+                                   color:#5a7a90;">Chart data unavailable</span>
                     </div>""", unsafe_allow_html=True)
                 else:
                     st.plotly_chart(
