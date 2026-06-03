@@ -450,7 +450,7 @@ def fetch_chart_data(symbol: str, _cache_key: int) -> pd.DataFrame | None:
     """
     try:
         raw = yf.Ticker(symbol).history(period="1d", interval="15m",
-                                        auto_adjust=True, prepost=False)
+                                        auto_adjust=True, prepost=True)
         if raw is None or raw.empty or "Close" not in raw.columns:
             return None
 
