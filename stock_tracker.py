@@ -333,7 +333,7 @@ def fmt_price(p) -> str:
 
 PST = pytz.timezone("America/Los_Angeles")
 _CHART_START_HOUR = 6   # 6:00 AM PST
-_CHART_END_HOUR   = 17  # 5:00 PM PST
+_CHART_END_HOUR   = 13  # 1:00 PM PST
 
 def make_chart(df: pd.DataFrame, is_up: bool) -> go.Figure | None:
     """
