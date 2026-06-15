@@ -290,6 +290,7 @@ div[data-testid="column"] { padding-left: 0.4rem !important; padding-right: 0.4r
 TICKERS = {
     "TSLA":  "Tesla, Inc.",
     "META":  "Meta Platforms",
+    "SPCX":  "The Space ETF",
     "MU":    "Micron Technology",
     "WDC":   "Western Digital",
     "NVMI":  "Nova Ltd",
@@ -301,7 +302,7 @@ TICKERS = {
     "IAU":   "iShares Gold Trust",
     "RKLB":  "Rocket Lab Corp",
 }
-ETF_TICKERS = {"SOXX", "SPY", "IAU"}
+ETF_TICKERS = {"SOXX", "SPY", "IAU", "SPCX"}
 NO_EARNINGS = ETF_TICKERS
 
 CHART_UP_LINE   = "#1fd97a"
@@ -691,7 +692,7 @@ if page == "📊  Stock Dashboard":
         st.markdown("""
         <div class="dash-header">
           <span class="dash-title">STOCK DASHBOARD</span>
-          <span class="dash-pill">Live · 12 Assets · PST</span>
+          <span class="dash-pill">Live · 13 Assets · PST</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
