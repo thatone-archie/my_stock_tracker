@@ -59,27 +59,34 @@ button[data-testid="collapsedControl"] {
 /* ════════════════════════════════════════
    TOP NAV TABS
    ════════════════════════════════════════ */
-.top-nav {
-  display: flex; align-items: center; gap: 0;
+/* Nav bar is now rendered with real st.button elements (see .st-key-top_nav_container
+   below) so switching pages triggers a normal Streamlit rerun instead of a full
+   browser navigation — this keeps the same session/websocket connection alive. */
+div.st-key-top_nav_container {
   background: #d6eaf8; border-radius: 12px;
   padding: 5px; margin-bottom: 20px;
   border: 1px solid #a9cce3;
   width: fit-content;
 }
-.top-nav a {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 600;
-  padding: 8px 22px; border-radius: 8px; cursor: pointer;
-  text-decoration: none; letter-spacing: 0.03em;
-  color: #3a6080; transition: background 0.15s, color 0.15s;
-  border: 1px solid transparent;
+div.st-key-top_nav_container div[data-testid="stHorizontalBlock"] { gap: 0 !important; }
+div.st-key-top_nav_container div[data-testid="column"] { width: auto !important; flex: none !important; padding: 0 !important; }
+div.st-key-top_nav_container .stButton { margin: 0 !important; }
+div.st-key-top_nav_container .stButton > button {
+  font-family: 'IBM Plex Mono', monospace !important; font-size: 0.82rem !important; font-weight: 600 !important;
+  padding: 8px 22px !important; border-radius: 8px !important; cursor: pointer !important;
+  letter-spacing: 0.03em !important; transition: background 0.15s, color 0.15s !important;
+  white-space: nowrap !important; box-shadow: none !important;
 }
-.top-nav a.active {
-  background: #1565a8; color: #fff;
-  border-color: #0d47a1;
-  box-shadow: 0 2px 8px rgba(21,101,168,0.25);
+div.st-key-top_nav_container button[kind="secondary"] {
+  background: transparent !important; color: #3a6080 !important; border: 1px solid transparent !important;
 }
-.top-nav a:not(.active):hover {
-  background: #c2dcef; color: #1565a8;
+div.st-key-top_nav_container button[kind="secondary"]:hover {
+  background: #c2dcef !important; color: #1565a8 !important;
+}
+div.st-key-top_nav_container button[kind="primary"] {
+  background: #1565a8 !important; color: #fff !important;
+  border: 1px solid #0d47a1 !important;
+  box-shadow: 0 2px 8px rgba(21,101,168,0.25) !important;
 }
 
 /* Dropdown menu panel */
@@ -111,6 +118,12 @@ button[data-testid="collapsedControl"] {
 .dash-pill {
   font-size: 0.9rem; color: var(--accent);
   background: rgba(59,158,255,0.12); border: 1px solid rgba(59,158,255,0.25);
+  border-radius: 20px; padding: 2px 10px;
+  letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
+}
+.dash-pill-etf {
+  font-size: 0.9rem; color: #8a6a00;
+  background: rgba(240,193,72,0.22); border: 1px solid rgba(240,193,72,0.45);
   border-radius: 20px; padding: 2px 10px;
   letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
 }
@@ -181,6 +194,18 @@ button[data-testid="collapsedControl"] {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
   font-weight: 600; color: #1565a8; line-height: 1.3;
 }
+/* ── ETF Performance Analysis cards — light-yellow palette (distinct from stock cards) ── */
+.card-etf {
+  background: #fffbea;
+  border: 1px solid #f0dca0;
+}
+.card-etf .card-ticker  { color: #8a6a00; }
+.card-etf .card-name    { color: #a68a3d; }
+.card-etf .price-main   { color: #4a3b00; }
+.card-etf .metrics-row  { border-top: 1px solid #f0dca0; }
+.card-etf .metric-block + .metric-block { border-left: 1px solid #f0dca0; }
+.card-etf .metric-label { color: #a68a3d; }
+
 .metric-value-earnings-soon {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
   font-weight: 700; color: #fff;
@@ -684,11 +709,13 @@ def fetch_etf_performance(symbol: str, _cache_key: int):
     except Exception:
         pass
 
-    # ~7 months of daily history gives enough buffer to find trading days
-    # on/near the 1-month-ago and 3-months-ago marks even across holidays.
+    # 2 years of daily history gives ample buffer to find trading days
+    # on/near the 1-month, 3-month (quarter), and 1-year marks, even across
+    # holidays/weekends. ("2y" is a period value yfinance/Yahoo actually supports;
+    # arbitrary values like "7mo" or "14mo" are not.)
     hist = None
     try:
-        hist = ticker.history(period="7mo", interval="1d", auto_adjust=True)
+        hist = ticker.history(period="2y", interval="1d", auto_adjust=True)
     except Exception:
         hist = None
 
@@ -729,12 +756,14 @@ def fetch_etf_performance(symbol: str, _cache_key: int):
 
     month_change_pct   = _pct_change_from(30)
     quarter_change_pct = _pct_change_from(91)
+    year_change_pct    = _pct_change_from(365)
 
     return {
         "price": current_price,
         "day_change_pct": day_change_pct,
         "month_change_pct": month_change_pct,
         "quarter_change_pct": quarter_change_pct,
+        "year_change_pct": year_change_pct,
     }
 
 
@@ -754,27 +783,35 @@ if "etf_cache_key" not in st.session_state:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  TOP NAV — replaces sidebar; uses query param for page state
+#  TOP NAV — replaces sidebar; real buttons (not <a href>) so switching tabs
+#  triggers a normal Streamlit rerun instead of a full browser navigation,
+#  which is what was spawning a brand-new session on every click.
 # ══════════════════════════════════════════════════════════════════════════════
-_qp = st.query_params.get("page", "dashboard")
-if _qp == "earnings":
-    page = "📅  Earnings Calendar"
-elif _qp == "etf":
-    page = "📈  ETF Performance Analysis"
-else:
-    page = "📊  Stock Dashboard"
+if "current_page" not in st.session_state:
+    _qp0 = st.query_params.get("page", "dashboard")
+    st.session_state.current_page = _qp0 if _qp0 in ("dashboard", "earnings", "etf") else "dashboard"
 
-_dash_cls = "active" if page == "📊  Stock Dashboard"          else ""
-_earn_cls = "active" if page == "📅  Earnings Calendar"        else ""
-_etf_cls  = "active" if page == "📈  ETF Performance Analysis" else ""
+_PAGE_LABELS = {
+    "dashboard": "📊  Stock Dashboard",
+    "earnings":  "📅  Earnings Calendar",
+    "etf":       "📈  ETF Performance Analysis",
+}
 
-st.markdown(f"""
-<div class="top-nav">
-  <a href="?page=dashboard" class="{_dash_cls}">📊&nbsp; Stock Dashboard</a>
-  <a href="?page=earnings"  class="{_earn_cls}">📅&nbsp; Earnings Calendar</a>
-  <a href="?page=etf"       class="{_etf_cls}">📈&nbsp; ETF Performance Analysis</a>
-</div>
-""", unsafe_allow_html=True)
+with st.container(key="top_nav_container"):
+    nav_cols = st.columns([1.7, 1.85, 2.75], gap="small")
+    for _col, _key in zip(nav_cols, _PAGE_LABELS):
+        with _col:
+            _is_active = st.session_state.current_page == _key
+            if st.button(
+                _PAGE_LABELS[_key],
+                key=f"nav_{_key}",
+                type="primary" if _is_active else "secondary",
+            ):
+                st.session_state.current_page = _key
+                st.query_params["page"] = _key
+                st.rerun()
+
+page = _PAGE_LABELS[st.session_state.current_page]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1103,7 +1140,7 @@ elif page == "📈  ETF Performance Analysis":
         st.markdown(f"""
         <div class="dash-header">
           <span class="dash-title">ETF PERFORMANCE ANALYSIS</span>
-          <span class="dash-pill">Live · {len(ETF_PERF_LIST)} ETFs</span>
+          <span class="dash-pill-etf">Live · {len(ETF_PERF_LIST)} ETFs</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
@@ -1163,8 +1200,14 @@ elif page == "📈  ETF Performance Analysis":
 
                 price = data["price"]
 
+                blocks_html = (
+                    _pct_badge("Daily Change",   data["day_change_pct"])
+                    + _pct_badge("Month Change",   data["month_change_pct"])
+                    + _pct_badge("Quarter Change", data["quarter_change_pct"])
+                    + _pct_badge("Year Change",    data["year_change_pct"])
+                )
                 st.markdown(f"""
-                <div class="card">
+                <div class="card card-etf">
                   <div class="card-top-row">
                     <div>
                       <div class="card-ticker">{sym}</div>
@@ -1172,17 +1215,7 @@ elif page == "📈  ETF Performance Analysis":
                     </div>
                   </div>
                   <div class="price-main">{fmt_price(price)}</div>
-                </div>""", unsafe_allow_html=True)
-
-                blocks_html = (
-                    _pct_badge("Daily Change",   data["day_change_pct"])
-                    + _pct_badge("Month Change",   data["month_change_pct"])
-                    + _pct_badge("Quarter Change", data["quarter_change_pct"])
-                )
-                st.markdown(f"""
-                <div class="card" style="margin-top:-14px; border-top:none;
-                            border-top-left-radius:0; border-top-right-radius:0;">
-                  <div class="metrics-row" style="border-top:none; padding-top:0; margin-top:0;">
+                  <div class="metrics-row">
                     {blocks_html}
                   </div>
                 </div>""", unsafe_allow_html=True)
