@@ -306,6 +306,21 @@ TICKERS = {
 ETF_TICKERS = {"SOXX", "SPY", "IAU", "SPCX", "DRAM"}
 NO_EARNINGS = ETF_TICKERS
 
+# ETF Performance Analysis page — category/fund list
+ETF_PERF_LIST = [
+    ("VOO",  "Vanguard S&P 500 ETF"),
+    ("IVV",  "iShares Core S&P 500 ETF"),
+    ("SPY",  "SPDR S&P 500 ETF Trust"),
+    ("VTI",  "Vanguard Total Stock Market ETF"),
+    ("IWM",  "iShares Russell 2000 ETF (Small Cap)"),
+    ("QQQ",  "Invesco QQQ Trust (Nasdaq 100)"),
+    ("VUG",  "Vanguard Growth ETF"),
+    ("XLK",  "Technology Select Sector SPDR"),
+    ("SMH",  "VanEck Semiconductor ETF"),
+    ("VTV",  "Vanguard Value ETF"),
+    ("DRAM", "Roundhill Memory ETF"),
+]
+
 CHART_UP_LINE   = "#1fd97a"
 CHART_UP_FILL   = "rgba(31,217,122,0.07)"
 CHART_DOWN_LINE = "#ff4d6a"
@@ -655,6 +670,74 @@ def fetch_week_earnings(start_str: str, end_str: str, _cache_key: int):
     return rows, error_msg
 
 
+@st.cache_data(ttl=0, show_spinner=False)
+def fetch_etf_performance(symbol: str, _cache_key: int):
+    """
+    Fetches current price, daily % change, 1-month % change, and 1-quarter
+    (3-month) % change — both measured back from the current date.
+    """
+    ticker = yf.Ticker(symbol)
+
+    info = {}
+    try:
+        info = ticker.info or {}
+    except Exception:
+        pass
+
+    # ~7 months of daily history gives enough buffer to find trading days
+    # on/near the 1-month-ago and 3-months-ago marks even across holidays.
+    hist = None
+    try:
+        hist = ticker.history(period="7mo", interval="1d", auto_adjust=True)
+    except Exception:
+        hist = None
+
+    if hist is not None and not hist.empty and hist.index.tz is not None:
+        hist.index = hist.index.tz_convert(None)
+
+    current_price = info.get("currentPrice") or info.get("regularMarketPrice")
+    if current_price is None and hist is not None and not hist.empty:
+        current_price = float(hist["Close"].iloc[-1])
+    if current_price is None:
+        raise ValueError(f"No price data available for {symbol}.")
+    current_price = float(current_price)
+
+    prev_close = info.get("previousClose") or info.get("regularMarketPreviousClose")
+    if prev_close is None and hist is not None and len(hist) >= 2:
+        prev_close = float(hist["Close"].iloc[-2])
+    try:
+        day_change_pct = (
+            (current_price - float(prev_close)) / float(prev_close) * 100
+            if prev_close and float(prev_close) != 0 else 0.0
+        )
+    except Exception:
+        day_change_pct = 0.0
+
+    def _pct_change_from(days_ago: int):
+        """% change from the closest available trading day ~days_ago back to now."""
+        if hist is None or hist.empty:
+            return None
+        try:
+            target = pd.Timestamp(datetime.now() - timedelta(days=days_ago))
+            idx = hist.index[hist.index <= target]
+            ref_close = float(hist.loc[idx[-1], "Close"]) if len(idx) else float(hist["Close"].iloc[0])
+            if ref_close == 0:
+                return None
+            return (current_price - ref_close) / ref_close * 100
+        except Exception:
+            return None
+
+    month_change_pct   = _pct_change_from(30)
+    quarter_change_pct = _pct_change_from(91)
+
+    return {
+        "price": current_price,
+        "day_change_pct": day_change_pct,
+        "month_change_pct": month_change_pct,
+        "quarter_change_pct": quarter_change_pct,
+    }
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  SESSION STATE
 # ══════════════════════════════════════════════════════════════════════════════
@@ -664,21 +747,32 @@ if "cache_key" not in st.session_state:
     st.session_state.cache_key = 0
 if "ec_week_offset" not in st.session_state:
     st.session_state.ec_week_offset = 0
+if "etf_last_refresh" not in st.session_state:
+    st.session_state.etf_last_refresh = datetime.now(pytz.timezone("America/Los_Angeles"))
+if "etf_cache_key" not in st.session_state:
+    st.session_state.etf_cache_key = 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TOP NAV — replaces sidebar; uses query param for page state
 # ══════════════════════════════════════════════════════════════════════════════
-_qp   = st.query_params.get("page", "dashboard")
-page  = "📅  Earnings Calendar" if _qp == "earnings" else "📊  Stock Dashboard"
+_qp = st.query_params.get("page", "dashboard")
+if _qp == "earnings":
+    page = "📅  Earnings Calendar"
+elif _qp == "etf":
+    page = "📈  ETF Performance Analysis"
+else:
+    page = "📊  Stock Dashboard"
 
-_dash_cls     = "active" if page == "📊  Stock Dashboard"   else ""
-_earn_cls     = "active" if page == "📅  Earnings Calendar" else ""
+_dash_cls = "active" if page == "📊  Stock Dashboard"          else ""
+_earn_cls = "active" if page == "📅  Earnings Calendar"        else ""
+_etf_cls  = "active" if page == "📈  ETF Performance Analysis" else ""
 
 st.markdown(f"""
 <div class="top-nav">
   <a href="?page=dashboard" class="{_dash_cls}">📊&nbsp; Stock Dashboard</a>
   <a href="?page=earnings"  class="{_earn_cls}">📅&nbsp; Earnings Calendar</a>
+  <a href="?page=etf"       class="{_etf_cls}">📈&nbsp; ETF Performance Analysis</a>
 </div>
 """, unsafe_allow_html=True)
 
@@ -996,4 +1090,101 @@ elif page == "📅  Earnings Calendar":
         f'<div class="ec-etf-note">ℹ️ &nbsp;ETFs & trusts excluded: {etf_list}</div>',
         unsafe_allow_html=True,
     )
+    st.write("")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAGE: ETF PERFORMANCE ANALYSIS
+# ══════════════════════════════════════════════════════════════════════════════
+elif page == "📈  ETF Performance Analysis":
+
+    header_col, btn_col = st.columns([6, 1])
+    with header_col:
+        st.markdown(f"""
+        <div class="dash-header">
+          <span class="dash-title">ETF PERFORMANCE ANALYSIS</span>
+          <span class="dash-pill">Live · {len(ETF_PERF_LIST)} ETFs</span>
+        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
+            f'{st.session_state.etf_last_refresh.strftime("%b %d, %Y  %H:%M:%S PST")}</div>',
+            unsafe_allow_html=True,
+        )
+    with btn_col:
+        st.write("")
+        if st.button("⟳  Refresh ETF Prices", key="etf_refresh"):
+            fetch_etf_performance.clear()
+            st.session_state.etf_last_refresh = datetime.now(pytz.timezone("America/Los_Angeles"))
+            st.session_state.etf_cache_key += 1
+            st.rerun()
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    def _pct_badge(label: str, val):
+        if val is None:
+            return f"""
+            <div class="metric-block">
+              <div class="metric-label">{label}</div>
+              <div class="metric-value">—</div>
+            </div>"""
+        is_up   = val >= 0
+        is_flat = abs(val) < 0.01
+        cls     = "badge-flat" if is_flat else ("badge-up" if is_up else "badge-down")
+        arrow   = "" if is_flat else ("▲" if is_up else "▼")
+        return f"""
+        <div class="metric-block">
+          <div class="metric-label">{label}</div>
+          <div class="badge {cls}" style="margin-top:2px;">{arrow} {abs(val):.2f}%</div>
+        </div>"""
+
+    perf_list = ETF_PERF_LIST
+    for row_start in range(0, len(perf_list), 4):
+        row_items = perf_list[row_start: row_start + 4]
+        cols = st.columns(4, gap="medium")
+        for col, (sym, name) in zip(cols, row_items):
+            with col:
+                try:
+                    data  = fetch_etf_performance(sym, st.session_state.etf_cache_key)
+                    error = None
+                except Exception as e:
+                    data = None; error = str(e)
+
+                if error or data is None:
+                    st.markdown(f"""
+                    <div class="error-card">
+                      <div class="error-icon">⚠️</div>
+                      <div class="error-sym">{sym}</div>
+                      <div class="error-name">{name}</div>
+                      <div class="error-msg">Unable to load data.<br>
+                        <small style="color:#7a8099">{error or 'Unknown error'}</small>
+                      </div>
+                    </div>""", unsafe_allow_html=True)
+                    continue
+
+                price = data["price"]
+
+                st.markdown(f"""
+                <div class="card">
+                  <div class="card-top-row">
+                    <div>
+                      <div class="card-ticker">{sym}</div>
+                      <div class="card-name">{name}</div>
+                    </div>
+                  </div>
+                  <div class="price-main">{fmt_price(price)}</div>
+                </div>""", unsafe_allow_html=True)
+
+                blocks_html = (
+                    _pct_badge("Daily Change",   data["day_change_pct"])
+                    + _pct_badge("Month Change",   data["month_change_pct"])
+                    + _pct_badge("Quarter Change", data["quarter_change_pct"])
+                )
+                st.markdown(f"""
+                <div class="card" style="margin-top:-14px; border-top:none;
+                            border-top-left-radius:0; border-top-right-radius:0;">
+                  <div class="metrics-row" style="border-top:none; padding-top:0; margin-top:0;">
+                    {blocks_html}
+                  </div>
+                </div>""", unsafe_allow_html=True)
+
     st.write("")
