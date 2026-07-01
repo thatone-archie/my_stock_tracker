@@ -290,7 +290,7 @@ div[data-testid="column"] { padding-left: 0.4rem !important; padding-right: 0.4r
 TICKERS = {
     "TSLA":  "Tesla, Inc.",
     "META":  "Meta Platforms",
-    "SPCX":  "The Space ETF",
+    "SPCX":  "Space Exploration",
     "MU":    "Micron Technology",
     "WDC":   "Western Digital",
     "NVMI":  "Nova Ltd",
