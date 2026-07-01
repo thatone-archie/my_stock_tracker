@@ -194,10 +194,11 @@ div.st-key-top_nav_container button[kind="primary"] {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
   font-weight: 600; color: #1565a8; line-height: 1.3;
 }
-/* ── ETF Performance Analysis cards — light-yellow palette (distinct from stock cards) ── */
+/* ── ETF Performance Dashboard cards — light-yellow palette (distinct from stock cards) ── */
 .card-etf {
   background: #fffbea;
   border: 1px solid #f0dca0;
+  margin-bottom: 18px;
 }
 .card-etf .card-ticker  { color: #8a6a00; }
 .card-etf .card-name    { color: #a68a3d; }
@@ -205,6 +206,14 @@ div.st-key-top_nav_container button[kind="primary"] {
 .card-etf .metrics-row  { border-top: 1px solid #f0dca0; }
 .card-etf .metric-block + .metric-block { border-left: 1px solid #f0dca0; }
 .card-etf .metric-label { color: #a68a3d; }
+/* Force every metric badge (Daily/Month/Quarter/Year) to the same pill size,
+   regardless of how many digits/characters the value has. */
+.card-etf .metric-block { display: flex; flex-direction: column; }
+.card-etf .metrics-row .badge {
+  width: 100%; box-sizing: border-box;
+  justify-content: center; text-align: center;
+  margin-top: 2px;
+}
 
 .metric-value-earnings-soon {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
@@ -331,7 +340,7 @@ TICKERS = {
 ETF_TICKERS = {"SOXX", "SPY", "IAU", "SPCX", "DRAM"}
 NO_EARNINGS = ETF_TICKERS
 
-# ETF Performance Analysis page — category/fund list
+# ETF Performance Dashboard page — category/fund list
 ETF_PERF_LIST = [
     ("VOO",  "Vanguard S&P 500 ETF"),
     ("IVV",  "iShares Core S&P 500 ETF"),
@@ -794,7 +803,7 @@ if "current_page" not in st.session_state:
 _PAGE_LABELS = {
     "dashboard": "📊  Stock Dashboard",
     "earnings":  "📅  Earnings Calendar",
-    "etf":       "📈  ETF Performance Analysis",
+    "etf":       "📈  ETF Performance Dashboard",
 }
 
 with st.container(key="top_nav_container"):
@@ -1131,15 +1140,15 @@ elif page == "📅  Earnings Calendar":
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  PAGE: ETF PERFORMANCE ANALYSIS
+#  PAGE: ETF PERFORMANCE DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
-elif page == "📈  ETF Performance Analysis":
+elif page == "📈  ETF Performance Dashboard":
 
     header_col, btn_col = st.columns([6, 1])
     with header_col:
         st.markdown(f"""
         <div class="dash-header">
-          <span class="dash-title">ETF PERFORMANCE ANALYSIS</span>
+          <span class="dash-title">ETF PERFORMANCE DASHBOARD</span>
           <span class="dash-pill-etf">Live · {len(ETF_PERF_LIST)} ETFs</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
@@ -1162,7 +1171,7 @@ elif page == "📈  ETF Performance Analysis":
             return f"""
             <div class="metric-block">
               <div class="metric-label">{label}</div>
-              <div class="metric-value">—</div>
+              <div class="badge badge-flat" style="margin-top:2px;">N/A</div>
             </div>"""
         is_up   = val >= 0
         is_flat = abs(val) < 0.01
