@@ -295,6 +295,7 @@ TICKERS = {
     "WDC":   "Western Digital",
     "NVMI":  "Nova Ltd",
     "MRVL":  "Marvell Technology",
+    "DRAM":  "Roundhill Memory ETF",
     "SOXX":  "iShares Semiconductor ETF",
     "GOOG":  "Alphabet Inc.",
     "ORCL":  "Oracle Corporation",
@@ -302,7 +303,7 @@ TICKERS = {
     "IAU":   "iShares Gold Trust",
     "RKLB":  "Rocket Lab Corp",
 }
-ETF_TICKERS = {"SOXX", "SPY", "IAU", "SPCX"}
+ETF_TICKERS = {"SOXX", "SPY", "IAU", "SPCX", "DRAM"}
 NO_EARNINGS = ETF_TICKERS
 
 CHART_UP_LINE   = "#1fd97a"
@@ -692,7 +693,7 @@ if page == "📊  Stock Dashboard":
         st.markdown("""
         <div class="dash-header">
           <span class="dash-title">STOCK DASHBOARD</span>
-          <span class="dash-pill">Live · 13 Assets · PST</span>
+          <span class="dash-pill">Live · 14 Assets · PST</span>
         </div>""", unsafe_allow_html=True)
         st.markdown(
             f'<div class="dash-timestamp">Last refreshed &nbsp;·&nbsp; '
